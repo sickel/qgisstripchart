@@ -33,6 +33,7 @@ import os.path
 
 
 from qgis.core import QgsProject, Qgis
+from qgis.PyQt.QtWidgets import QGraphicsScene,QApplication
 
 
 class StripChart:
@@ -224,13 +225,45 @@ class StripChart:
     
 
     def stripchart(self):
+        w=250
         layername=self.dockwidget.cbLayer.currentText()
         layers = QgsProject.instance().mapLayersByName(layername) # list of layers with selected name
+        if len(layers)==0:
+            return
         layer = layers[0] # first layer .
         fieldname=self.dockwidget.cbItem.currentText()
+        if fieldname=='' or fieldname is None:
+            return
+        values=[]
         for feature in layer.getFeatures():
-            pass
-            # print(feature[fieldname])
+            if isinstance(feature[fieldname],list):
+                 self.iface.messageBar().pushMessage(
+                    "Error", "Invalid field type : {}".format(fieldname),
+                    level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
+                 return
+            values.append(feature[fieldname])
+        self.scene.clear()
+        self.scene.setSceneRect(0,0,w,len(values))
+        maxval=max(values)
+        minval=min(values)
+        self.iface.messageBar().pushMessage(
+                    "Drawing", "Maxvalue {} ".format(str(maxval)),
+                    level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
+        # TODO: Make a sensible scaling using min and maxval
+        scale=w/maxval
+        n=0
+        for v in values:
+            self.scene.addLine(0,n,v*scale,n)
+            n+=1
+        
+    def setuplayers(self):
+        layers = QgsProject.instance().layerTreeRoot().children()
+        self.dockwidget.cbLayer.clear()
+        for layer in layers:
+            # if layer.layer()type==QgsMapLayer.Vectorlayer:
+                self.dockwidget.cbLayer.addItems([layer.name()])
+        self.listfields()
+        
 
     def run(self):
         """Run method that loads and starts the plugin"""
@@ -246,19 +279,13 @@ class StripChart:
             if self.dockwidget == None:
                 # Create the dockwidget (after translation) and keep reference
                 self.dockwidget = StripChartDockWidget()
-
+            
             self.scene=QGraphicsScene()
             self.dockwidget.graphicsView.setScene(self.scene)
-            self.scene.setSceneRect(0,0,1200,300)
-
-            layers = QgsProject.instance().layerTreeRoot().children()
-            self.dockwidget.cbLayer.clear()
-            self.dockwidget.cbLayer.addItems([layer.name() for layer in layers])
-            self.listfields()
-
-
+            self.scene.setSceneRect(0,0,300,2000)
+            self.setuplayers()
             self.dockwidget.cbLayer.currentIndexChanged['QString'].connect(self.listfields)
-            elf.dockwidget.cbItem.currentIndexChanged['QString'].connect(self.stripchart)
+            self.dockwidget.cbItem.currentIndexChanged['QString'].connect(self.stripchart)
             
 
             # connect to provide cleanup on closing of dockwidget

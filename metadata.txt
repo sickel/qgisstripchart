@@ -6,7 +6,7 @@
 name=Draw stripchart
 qgisMinimumVersion=3.0
 description=Draws a stripchart for a value from a layer
-version=0.1
+version=0.2
 author=Morten Sickel
 email=morten@sickel.net
 

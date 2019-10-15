@@ -1,0 +1,5 @@
+*.zip
+*.pyc
+help/build
+*autosave
+*.kate-swp
