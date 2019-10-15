@@ -12,8 +12,8 @@ email=morten@sickel.net
 
 about=The plugin draws a stripchart for a selected value from a dataset.
 
-tracker=http://bug
-repository=http://repo
+tracker=https://github.com/sickel/qgisstripchart/
+repository=https://github.com/sickel/qgisstripchart/
 # End of mandatory metadata
 
 # Recommended items:
@@ -25,8 +25,8 @@ hasProcessingProvider=no
 # Tags are comma separated with spaces allowed
 tags=stripchart, timeseries
 
-homepage=http://homepage
-category=Database
+homepage=https://github.com/sickel/qgisstripchart/
+category=Database  Timeseries 
 icon=icon.png
 # experimental flag
 experimental=True
