@@ -174,7 +174,7 @@ class StripChart:
         icon_path = ':/plugins/stripchart/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u''),
+            text=self.tr(u'Draw strip charts'),
             callback=self.run,
             parent=self.iface.mainWindow())
 
@@ -260,7 +260,8 @@ class StripChart:
         layers = QgsProject.instance().layerTreeRoot().children()
         self.dockwidget.cbLayer.clear()
         for layer in layers:
-            # if layer.layer()type==QgsMapLayer.Vectorlayer:
+        # TODO: Filter so only vector layers are listed
+            # if layer.layer()type==QgsMapLayer.Vectorlayer: - returns nothing...?
                 self.dockwidget.cbLayer.addItems([layer.name()])
         self.listfields()
         
