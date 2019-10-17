@@ -16,15 +16,12 @@
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="vlMain">
       <item>
        <widget class="QComboBox" name="cbLayer"/>
       </item>
       <item>
        <widget class="QComboBox" name="cbItem"/>
-      </item>
-      <item>
-       <widget class="QGraphicsView" name="graphicsView"/>
       </item>
      </layout>
     </item>

@@ -33,7 +33,7 @@ import os.path
 
 
 from qgis.core import QgsProject, Qgis, QgsFeatureRequest
-from qgis.PyQt.QtWidgets import QGraphicsScene,QApplication
+from qgis.PyQt.QtWidgets import QGraphicsScene,QApplication,QGraphicsView
 
 
 class StripChart:
@@ -73,9 +73,10 @@ class StripChart:
         self.toolbar.setObjectName(u'StripChart')
 
         #print "** INITIALIZING StripChart"
-
+        self.view = MouseReadGraphicsView(self.iface)
+        
         self.pluginIsActive = False
-        self.dockwidget = None
+        # self.dockwidget = None
 
 
     # noinspection PyMethodMayBeStatic
@@ -174,9 +175,20 @@ class StripChart:
         icon_path = ':/plugins/stripchart/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'Draw strip charts'),
+            text=self.tr(u'Stripcharts'),
             callback=self.run,
             parent=self.iface.mainWindow())
+        self.dlg=StripChartDockWidget(self.iface.mainWindow())
+        self.view.setParent(self.dlg) 
+        self.dlg.vlMain.addWidget(self.view)
+        self.scene=QGraphicsScene()
+        self.view.setScene(self.scene)
+        self.scene.setSceneRect(0,0,300,2000)
+        self.setuplayers()
+        self.dlg.cbLayer.currentIndexChanged['QString'].connect(self.listfields)
+        self.dlg.cbItem.currentIndexChanged['QString'].connect(self.stripchart)
+            
+
 
     #--------------------------------------------------------------------------
 
@@ -186,7 +198,7 @@ class StripChart:
         #print "** CLOSING StripChart"
 
         # disconnects
-        self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
+        self.dlg.closingPlugin.disconnect(self.onClosePlugin)
 
         # remove this statement if dockwidget is to remain
         # for reuse if plugin is reopened
@@ -215,27 +227,27 @@ class StripChart:
 
     def listfields(self):
         # When selecting a new layer. List fields for that layer
-        self.dockwidget.cbItem.clear()
-        layername=self.dockwidget.cbLayer.currentText()
+        self.dlg.cbItem.clear()
+        layername=self.dlg.cbLayer.currentText()
         layers = QgsProject.instance().mapLayersByName(layername) # list of layers with any name
         if len(layers)==0:
             return
         layer = layers[0] # first layer .
         fields = layer.fields().names() #Get Fiels
         # TODO: Add only if array field, but c.f the idea on using comma-separated numbers
-        self.dockwidget.cbItem.addItems(fields) #Added to the comboBox
+        self.dlg.cbItem.addItems(fields) #Added to the comboBox
     
 
     def stripchart(self):
         if self.init:
             return
         w=250
-        layername=self.dockwidget.cbLayer.currentText()
+        layername=self.dlg.cbLayer.currentText()
         layers = QgsProject.instance().mapLayersByName(layername) # list of layers with selected name
         if len(layers)==0:
             return
         layer = layers[0] # first layer .
-        fieldname=self.dockwidget.cbItem.currentText()
+        fieldname=self.dlg.cbItem.currentText()
         if fieldname=='' or fieldname is None:
             return
         values=[]
@@ -263,11 +275,11 @@ class StripChart:
         
     def setuplayers(self):
         layers = QgsProject.instance().layerTreeRoot().children()
-        self.dockwidget.cbLayer.clear()
+        self.dlg.cbLayer.clear()
         for layer in layers:
         # TODO: Filter so only vector layers are listed
             # if layer.layer()type==QgsMapLayer.Vectorlayer: - returns nothing...?
-                self.dockwidget.cbLayer.addItems([layer.name()])
+                self.dlg.cbLayer.addItems([layer.name()])
         self.listfields()
         
 
@@ -282,23 +294,34 @@ class StripChart:
             # dockwidget may not exist if:
             #    first run of plugin
             #    removed on close (see self.onClosePlugin method)
-            if self.dockwidget == None:
-                # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = StripChartDockWidget()
+            #if self.dockwidget == None:
+            #    # Create the dockwidget (after translation) and keep reference
+            #    self.dockwidget = StripChartDockWidget()
             
-            self.scene=QGraphicsScene()
-            self.dockwidget.graphicsView.setScene(self.scene)
-            self.scene.setSceneRect(0,0,300,2000)
-            self.setuplayers()
-            self.dockwidget.cbLayer.currentIndexChanged['QString'].connect(self.listfields)
-            self.dockwidget.cbItem.currentIndexChanged['QString'].connect(self.stripchart)
             
 
             # connect to provide cleanup on closing of dockwidget
-            self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+            self.dlg.closingPlugin.connect(self.onClosePlugin)
 
             # show the dockwidget
             # TODO: fix to allow choice of dock location
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
-            self.dockwidget.show()
+            self.iface.mainWindow().addDockWidget(Qt.RightDockWidgetArea, self.dlg)
+            self.dlg.show()
             self.init=False
+            
+            
+
+class MouseReadGraphicsView(QGraphicsView):
+    def __init__(self, iface):
+        self.iface = iface
+        QGraphicsView.__init__(self)
+        
+        
+        
+    def mousePressEvent(self, event):
+        if event.button() == 1:
+            coords=self.mapToScene(event.pos())    
+            self.iface.messageBar().pushMessage(
+                    "Clicked", "X {} ".format(str(coords.x()),
+                    level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
+        
