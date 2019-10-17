@@ -32,7 +32,7 @@ from .stripchart_dockwidget import StripChartDockWidget
 import os.path
 
 
-from qgis.core import QgsProject, Qgis
+from qgis.core import QgsProject, Qgis, QgsFeatureRequest
 from qgis.PyQt.QtWidgets import QGraphicsScene,QApplication
 
 
@@ -218,6 +218,8 @@ class StripChart:
         self.dockwidget.cbItem.clear()
         layername=self.dockwidget.cbLayer.currentText()
         layers = QgsProject.instance().mapLayersByName(layername) # list of layers with any name
+        if len(layers)==0:
+            return
         layer = layers[0] # first layer .
         fields = layer.fields().names() #Get Fiels
         # TODO: Add only if array field, but c.f the idea on using comma-separated numbers
@@ -225,6 +227,8 @@ class StripChart:
     
 
     def stripchart(self):
+        if self.init:
+            return
         w=250
         layername=self.dockwidget.cbLayer.currentText()
         layers = QgsProject.instance().mapLayersByName(layername) # list of layers with selected name
@@ -235,13 +239,14 @@ class StripChart:
         if fieldname=='' or fieldname is None:
             return
         values=[]
-        for feature in layer.getFeatures():
+        request = QgsFeatureRequest().addOrderBy('Id')
+        for feature in layer.getFeatures(request):
             if isinstance(feature[fieldname],list):
                  self.iface.messageBar().pushMessage(
                     "Error", "Invalid field type : {}".format(fieldname),
                     level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
                  return
-            values.append(feature[fieldname])
+            values.append(feature[fieldname]) 
         self.scene.clear()
         self.scene.setSceneRect(0,0,w,len(values))
         maxval=max(values)
@@ -268,7 +273,7 @@ class StripChart:
 
     def run(self):
         """Run method that loads and starts the plugin"""
-
+        self.init=True
         if not self.pluginIsActive:
             self.pluginIsActive = True
 
@@ -296,3 +301,4 @@ class StripChart:
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
+            self.init=False
