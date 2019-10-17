@@ -231,8 +231,8 @@ class StripChart:
         layers = QgsProject.instance().mapLayersByName(layername) # list of layers with any name
         if len(layers)==0:
             return
-        layer = layers[0] # first layer .
-        fields = layer.fields().names() #Get Fiels
+        self.view.layer = layers[0] # first layer .
+        fields = self.view.layer.fields().names() #Get Fiels
         # TODO: Add only if array field, but c.f the idea on using comma-separated numbers
         self.dlg.cbItem.addItems(fields) #Added to the comboBox
     
@@ -253,7 +253,7 @@ class StripChart:
         if fieldname=='' or fieldname is None:
             return
         values=[]
-        request = QgsFeatureRequest().addOrderBy('Id')
+        request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([fieldname], self.view.layer.fields() )
         iter=self.view.layer.getFeatures(request)
         for feature in iter:
             if isinstance(feature[fieldname],list):
@@ -335,7 +335,7 @@ class MouseReadGraphicsView(QGraphicsView):
                    level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
                 return
            
-            request = QgsFeatureRequest().addOrderBy('Id')
+            request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes(['id'], self.layer.fields() )
             iter=self.layer.getFeatures(request)
             n=0
             #self.layer.setSelectedFeatures([])
