@@ -67,14 +67,14 @@ class StripChart:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&Draw strip chart')
+        self.menu = self.tr(u'&Draw stripchart')
         # TODO: We are going to let the user set this up in a future iteration
-        self.toolbar = self.iface.addToolBar(u'StripChart')
-        self.toolbar.setObjectName(u'StripChart')
+        self.toolbar = self.iface.addToolBar(u'Stripchart')
+        self.toolbar.setObjectName(u'Stripchart')
 
         #print "** INITIALIZING StripChart"
         self.view = MouseReadGraphicsView(self.iface)
-        
+        self.view.layer=None
         self.pluginIsActive = False
         # self.dockwidget = None
 
@@ -92,7 +92,7 @@ class StripChart:
         :rtype: QString
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate('StripChart', message)
+        return QCoreApplication.translate('Stripchart', message)
 
 
     def add_action(
@@ -185,8 +185,7 @@ class StripChart:
         self.view.setScene(self.scene)
         self.scene.setSceneRect(0,0,300,2000)
         self.setuplayers()
-        self.dlg.cbLayer.currentIndexChanged['QString'].connect(self.listfields)
-        self.dlg.cbItem.currentIndexChanged['QString'].connect(self.stripchart)
+        self.init=False
             
 
 
@@ -239,26 +238,33 @@ class StripChart:
     
 
     def stripchart(self):
-        if self.init:
-            return
+        #self.iface.messageBar().pushMessage(
+        #            "Info", "So far so good...",
+        #            level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
+        #if self.init:
+        #    return
         w=250
         layername=self.dlg.cbLayer.currentText()
         layers = QgsProject.instance().mapLayersByName(layername) # list of layers with selected name
         if len(layers)==0:
             return
-        layer = layers[0] # first layer .
+        self.view.layer = layers[0] # first layer .
         fieldname=self.dlg.cbItem.currentText()
         if fieldname=='' or fieldname is None:
             return
         values=[]
         request = QgsFeatureRequest().addOrderBy('Id')
-        for feature in layer.getFeatures(request):
+        iter=self.view.layer.getFeatures(request)
+        for feature in iter:
             if isinstance(feature[fieldname],list):
                  self.iface.messageBar().pushMessage(
                     "Error", "Invalid field type : {}".format(fieldname),
                     level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
                  return
             values.append(feature[fieldname]) 
+        #self.iface.messageBar().pushMessage(
+        #            "Info", "So far, so good {}",format(len(values)),
+        #            level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
         self.scene.clear()
         self.scene.setSceneRect(0,0,w,len(values))
         maxval=max(values)
@@ -306,8 +312,9 @@ class StripChart:
             # show the dockwidget
             # TODO: fix to allow choice of dock location
             self.iface.mainWindow().addDockWidget(Qt.RightDockWidgetArea, self.dlg)
+            self.dlg.cbLayer.currentIndexChanged['QString'].connect(self.listfields)
+            self.dlg.cbItem.currentIndexChanged['QString'].connect(self.stripchart)
             self.dlg.show()
-            self.init=False
             
             
 
@@ -321,7 +328,20 @@ class MouseReadGraphicsView(QGraphicsView):
     def mousePressEvent(self, event):
         if event.button() == 1:
             coords=self.mapToScene(event.pos())    
-            self.iface.messageBar().pushMessage(
-                    "Clicked", "X {} ".format(str(coords.x()),
-                    level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
-        
+            y=coords.y()
+            if self.layer== None:
+                self.iface.messageBar().pushMessage(
+                    "Clicked", "y: {} ".format(str(y),
+                   level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
+                return
+           
+            request = QgsFeatureRequest().addOrderBy('Id')
+            iter=self.layer.getFeatures(request)
+            n=0
+            #self.layer.setSelectedFeatures([])
+            for feature in iter:
+                n=n+1
+                if n < y:
+                    next
+                if n==y:
+                    self.layer.select(feature["id"])
