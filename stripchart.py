@@ -360,7 +360,7 @@ class MouseReadGraphicsView(QGraphicsView):
                     "Clicked", "y: {} ".format(str(y),
                    level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
                 return
-            self.selectmarker(y)
+            # self.selectmarker(y)
             request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.idfield], self.layer.fields() )
             iter=self.layer.getFeatures(request)
             n=0
