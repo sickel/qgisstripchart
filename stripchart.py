@@ -68,7 +68,6 @@ class StripChart:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&Draw stripchart')
-        # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'Stripchart')
         self.toolbar.setObjectName(u'Stripchart')
 
@@ -232,8 +231,8 @@ class StripChart:
         if len(layers)==0:
             return
         self.view.layer = layers[0] # first layer .
-        fields = self.view.layer.fields().names() #Get Fiels
-        # TODO: Add only if array field, but c.f the idea on using comma-separated numbers
+        fields = self.view.layer.fields().names() #Get Fields
+        # Should only add relevant (i.e. numeric fields)
         self.dlg.cbItem.addItems(fields) #Added to the comboBox
     
 
@@ -270,9 +269,6 @@ class StripChart:
         self.scene.clear()
         maxval=max(values)
         minval=min(values)
-        self.iface.messageBar().pushMessage(
-                    "Drawing", "Maxvalue {} ".format(str(maxval)),
-                    level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
         # TODO: Make a sensible scaling using min and maxval
         scale=self.view.width/maxval
         n=0
@@ -350,24 +346,59 @@ class MouseReadGraphicsView(QGraphicsView):
             y=self.ids.index(idval)
             self.selectmarker(y)
         
-        
+    #TODO - handle ctrl and/or shift click and drags correctly
     def mousePressEvent(self, event):
         if event.button() == 1:
             coords=self.mapToScene(event.pos())    
-            y=coords.y()
+            self.ypress=coords.y()
+            if self.layer== None:
+                self.iface.messageBar().pushMessage(
+                    "Clicked", "y: {} ".format(str(self.ypress),
+                   level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
+                return
+            # self.selectmarker(y) # Do not need any longer. Changes in selection redraws
+            return
+            request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.idfield], self.layer.fields() )
+            iter=self.layer.getFeatures(request)
+            n=0
+            #DONE: Mark selected features in stripchart 
+            
+            for feature in iter:
+                n=n+1
+                if n < self.y:
+                    next
+                if n==self.y:
+                    self.layer.select(feature[self.idfield])
+                    
+                    
+    def mouseReleaseEvent(self, event):
+        #if event.button() == 1:
+            coords=self.mapToScene(event.pos())    
+            yrelease=coords.y()
+            if yrelease==None:
+                yrelease=0
+            if self.ypress==None:
+                self.ypress=0
             if self.layer== None:
                 self.iface.messageBar().pushMessage(
                     "Clicked", "y: {} ".format(str(y),
                    level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
                 return
-            # self.selectmarker(y)
+            # self.selectmarker(y) # Do not need any longer. Changes in selection redraws
+            ymin=int(min(yrelease,self.ypress))
+            ymax=int(max(yrelease,self.ypress))
+            if ymin==ymax:
+                ymax+=1
+            selectedids=self.ids[ymin:ymax]
+            self.layer.select(selectedids)
+            return # Should not need the following...
             request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.idfield], self.layer.fields() )
             iter=self.layer.getFeatures(request)
             n=0
-            #TODO: Mark selected features in stripchart 
+            #DONE: Mark selected features in stripchart 
             for feature in iter:
                 n=n+1
-                if n < y:
+                if n < ymin:
                     next
-                if n==y:
+                if n>=ymin and n <=ymax:
                     self.layer.select(feature[self.idfield])
