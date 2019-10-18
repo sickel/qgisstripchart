@@ -6,7 +6,7 @@
 name=Draw stripchart
 qgisMinimumVersion=3.0
 description=Draws a stripchart for a value from a layer. Shows selected data and can be used to select data
-version=0.3
+version=0.4
 author=Morten Sickel
 email=morten@sickel.net
 
