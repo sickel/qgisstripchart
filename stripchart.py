@@ -321,12 +321,8 @@ class StripChart:
     def markselected(self):
         sels=self.view.layer.selectedFeatures() # The selected features in the active (from this plugin's point of view) layer
         n=len(sels)
-        self.iface.messageBar().pushMessage(
-                "Selected", "n: {} ".format(str(n),
-                level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
         self.view.clearselection()
         if n>0:
-            
             self.view.markselection(sels)
 
 class MouseReadGraphicsView(QGraphicsView):
@@ -340,7 +336,8 @@ class MouseReadGraphicsView(QGraphicsView):
         
     def selectmarker(self,y):
         selectpen=QPen(Qt.yellow)
-        markline=self.scene().addLine(0,y,250,y,selectpen).setZValue(-1)
+        markline=self.scene().addLine(0,y,250,y,selectpen)
+        markline.setZValue(-1)
         self.selectlines.append(markline)
     
     def clearselection(self):
@@ -363,8 +360,8 @@ class MouseReadGraphicsView(QGraphicsView):
                     "Clicked", "y: {} ".format(str(y),
                    level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
                 return
-            selectmarker(y)
-            request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes(['id'], self.layer.fields() )
+            self.selectmarker(y)
+            request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.idfield], self.layer.fields() )
             iter=self.layer.getFeatures(request)
             n=0
             #TODO: Mark selected features in stripchart 
@@ -373,4 +370,4 @@ class MouseReadGraphicsView(QGraphicsView):
                 if n < y:
                     next
                 if n==y:
-                    self.layer.select(feature["id"])
+                    self.layer.select(feature[self.idfield])
