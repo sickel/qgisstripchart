@@ -350,55 +350,23 @@ class MouseReadGraphicsView(QGraphicsView):
     def mousePressEvent(self, event):
         if event.button() == 1:
             coords=self.mapToScene(event.pos())    
-            self.ypress=coords.y()
-            if self.layer== None:
-                self.iface.messageBar().pushMessage(
-                    "Clicked", "y: {} ".format(str(self.ypress),
-                   level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
-                return
-            # self.selectmarker(y) # Do not need any longer. Changes in selection redraws
-            return
-            request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.idfield], self.layer.fields() )
-            iter=self.layer.getFeatures(request)
-            n=0
-            #DONE: Mark selected features in stripchart 
-            
-            for feature in iter:
-                n=n+1
-                if n < self.y:
-                    next
-                if n==self.y:
-                    self.layer.select(feature[self.idfield])
+            self.ypress=coords.y() # Storing where the button was clicked
                     
                     
     def mouseReleaseEvent(self, event):
-        #if event.button() == 1:
-            coords=self.mapToScene(event.pos())    
+        if event.button() == 1:
+            coords=self.mapToScene(event.pos())  
             yrelease=coords.y()
             if yrelease==None:
                 yrelease=0
             if self.ypress==None:
                 self.ypress=0
             if self.layer== None:
-                self.iface.messageBar().pushMessage(
-                    "Clicked", "y: {} ".format(str(y),
-                   level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
                 return
-            # self.selectmarker(y) # Do not need any longer. Changes in selection redraws
             ymin=int(min(yrelease,self.ypress))
             ymax=int(max(yrelease,self.ypress))
             if ymin==ymax:
                 ymax+=1
             selectedids=self.ids[ymin:ymax]
             self.layer.select(selectedids)
-            return # Should not need the following...
-            request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.idfield], self.layer.fields() )
-            iter=self.layer.getFeatures(request)
-            n=0
-            #DONE: Mark selected features in stripchart 
-            for feature in iter:
-                n=n+1
-                if n < ymin:
-                    next
-                if n>=ymin and n <=ymax:
-                    self.layer.select(feature[self.idfield])
+            self.ypress=None
