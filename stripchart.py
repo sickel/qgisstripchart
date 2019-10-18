@@ -31,7 +31,7 @@ from .resources import *
 from .stripchart_dockwidget import StripChartDockWidget
 import os.path
 
-
+from qgis.PyQt.QtGui import QPen
 from qgis.core import QgsProject, Qgis, QgsFeatureRequest
 from qgis.PyQt.QtWidgets import QGraphicsScene,QApplication,QGraphicsView
 
@@ -243,17 +243,17 @@ class StripChart:
         #            level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
         #if self.init:
         #    return
-        w=250
         layername=self.dlg.cbLayer.currentText()
         layers = QgsProject.instance().mapLayersByName(layername) # list of layers with selected name
         if len(layers)==0:
             return
-        self.view.layer = layers[0] # first layer .
+        self.view.layer = layers[0] # first layer 
+        self.view.ids=[] # Keeps the ids .
         fieldname=self.dlg.cbItem.currentText()
         if fieldname=='' or fieldname is None:
             return
         values=[]
-        request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([fieldname], self.view.layer.fields() )
+        request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.view.idfield,fieldname], self.view.layer.fields() )
         iter=self.view.layer.getFeatures(request)
         for feature in iter:
             if isinstance(feature[fieldname],list):
@@ -262,18 +262,19 @@ class StripChart:
                     level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
                  return
             values.append(feature[fieldname]) 
+            self.view.ids.append(feature[self.view.idfield])  
+        self.scene.setSceneRect(0,0,self.view.width,len(values))
         #self.iface.messageBar().pushMessage(
         #            "Info", "So far, so good {}",format(len(values)),
         #            level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
         self.scene.clear()
-        self.scene.setSceneRect(0,0,w,len(values))
         maxval=max(values)
         minval=min(values)
         self.iface.messageBar().pushMessage(
                     "Drawing", "Maxvalue {} ".format(str(maxval)),
                     level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
         # TODO: Make a sensible scaling using min and maxval
-        scale=w/maxval
+        scale=self.view.width/maxval
         n=0
         for v in values:
             self.scene.addLine(0,n,v*scale,n)
@@ -314,15 +315,43 @@ class StripChart:
             self.iface.mainWindow().addDockWidget(Qt.RightDockWidgetArea, self.dlg)
             self.dlg.cbLayer.currentIndexChanged['QString'].connect(self.listfields)
             self.dlg.cbItem.currentIndexChanged['QString'].connect(self.stripchart)
+            self.iface.mapCanvas().selectionChanged.connect(self.markselected)
             self.dlg.show()
             
+    def markselected(self):
+        sels=self.view.layer.selectedFeatures() # The selected features in the active (from this plugin's point of view) layer
+        n=len(sels)
+        self.iface.messageBar().pushMessage(
+                "Selected", "n: {} ".format(str(n),
+                level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
+        self.view.clearselection()
+        if n>0:
             
+            self.view.markselection(sels)
 
 class MouseReadGraphicsView(QGraphicsView):
     def __init__(self, iface):
         self.iface = iface
         QGraphicsView.__init__(self)
+        self.selectlines=[]
+        self.ids=[]
+        self.width=250
+        self.idfield='id' # Needs to be userselectable or autoset
         
+    def selectmarker(self,y):
+        selectpen=QPen(Qt.yellow)
+        markline=self.scene().addLine(0,y,250,y,selectpen).setZValue(-1)
+        self.selectlines.append(markline)
+    
+    def clearselection(self):
+        for line in self.selectlines:
+             self.scene().removeItem(line)
+        
+    def markselection(self,sels):
+        for sel in sels:
+            idval=sel[self.idfield]
+            y=self.ids.index(idval)
+            self.selectmarker(y)
         
         
     def mousePressEvent(self, event):
@@ -334,11 +363,11 @@ class MouseReadGraphicsView(QGraphicsView):
                     "Clicked", "y: {} ".format(str(y),
                    level=Qgis.Info, duration=3)) # Info, Warning, Critical, Success
                 return
-           
+            selectmarker(y)
             request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes(['id'], self.layer.fields() )
             iter=self.layer.getFeatures(request)
             n=0
-            #self.layer.setSelectedFeatures([])
+            #TODO: Mark selected features in stripchart 
             for feature in iter:
                 n=n+1
                 if n < y:
