@@ -67,7 +67,7 @@ class StripChart:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&Draw stripchart')
+        self.menu = self.tr(u'&Stripchart')
         self.toolbar = self.iface.addToolBar(u'Stripchart')
         self.toolbar.setObjectName(u'Stripchart')
 
@@ -174,7 +174,7 @@ class StripChart:
         icon_path = ':/plugins/stripchart/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'Stripcharts'),
+            text=self.tr(u'Stripchart'),
             callback=self.run,
             parent=self.iface.mainWindow())
         self.dlg=StripChartDockWidget(self.iface.mainWindow())
@@ -183,8 +183,6 @@ class StripChart:
         self.scene=QGraphicsScene()
         self.view.setScene(self.scene)
         self.scene.setSceneRect(0,0,300,2000)
-        self.setuplayers()
-        self.init=False
             
 
 
@@ -214,7 +212,7 @@ class StripChart:
 
         for action in self.actions:
             self.iface.removePluginDatabaseMenu(
-                self.tr(u'&Draw strip chart'),
+                self.tr(u'Stripchart'),
                 action)
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
@@ -312,9 +310,12 @@ class StripChart:
             self.dlg.cbLayer.currentIndexChanged['QString'].connect(self.listfields)
             self.dlg.cbItem.currentIndexChanged['QString'].connect(self.stripchart)
             self.iface.mapCanvas().selectionChanged.connect(self.markselected)
+            self.setuplayers()
             self.dlg.show()
             
     def markselected(self):
+        if self.view.layer==None:
+            return
         sels=self.view.layer.selectedFeatures() # The selected features in the active (from this plugin's point of view) layer
         n=len(sels)
         self.view.clearselection()
