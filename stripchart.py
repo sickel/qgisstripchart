@@ -260,7 +260,7 @@ class StripChart:
         self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
         self.scene.clear()
         maxval=max(self.scene.values)
-        minval=min(self.scene|.values)
+        minval=min(self.scene.values)
         # TODO: Make a sensible scaling using min and maxval
         scale=self.view.width/maxval
         n=0
