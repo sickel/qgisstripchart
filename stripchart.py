@@ -81,6 +81,7 @@ class StripChart:
         self.view = MouseReadGraphicsView(self.iface)
         self.view.layer=None
         self.pluginIsActive = False
+        self.view.parent=self
         # self.dockwidget = None
 
 
@@ -239,8 +240,8 @@ class StripChart:
         fieldname=self.dlg.cbItem.currentText()
         if fieldname=='' or fieldname is None:
             return # Called with invalid field name
-        self.view.values=[]
-        request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry). setSubsetOfAttributes([self.view.idfield,fieldname], self.view.layer.fields() )
+        self.scene.values=[]
+        request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.view.idfield,fieldname], self.view.layer.fields() )
         iter=self.view.layer.getFeatures(request)
         for feature in iter:
             if isinstance(feature[fieldname],list):
@@ -256,14 +257,14 @@ class StripChart:
             # TODO: Mouse action to read out values from stripchart
             # USing values[] to find min and max values and to find the number of features
             self.view.ids.append(feature[self.view.idfield])  
-        self.scene.setSceneRect(0,0,self.view.width,len(self.view.values))
+        self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
         self.scene.clear()
-        maxval=max(self.view.values)
-        minval=min(self.view.values)
+        maxval=max(self.scene.values)
+        minval=min(self.scene|.values)
         # TODO: Make a sensible scaling using min and maxval
         scale=self.view.width/maxval
         n=0
-        for v in self.view.values:
+        for v in self.scene.values:
             self.scene.addLine(0,n,v*scale,n)
             n+=1
         
@@ -315,6 +316,7 @@ class MouseReadGraphicsView(QGraphicsView):
         self.width=250
         self.idfield='id'   # Needs to be userselectable or autoset
         # TODO: set default to "id", if no id, set to "fid". If neither, refuse to plot from layer
+        self.setMouseTracking(True)
         
     def selectmarker(self,y):
         """ Drawing a yellow line behind the stripchart to mark a selected items"""
@@ -343,7 +345,13 @@ class MouseReadGraphicsView(QGraphicsView):
             coords=self.mapToScene(event.pos())    
             self.ypress=coords.y() # Storing where the button was clicked
                     
-                    
+
+    def mouseMoveEvent(self,event):
+        """ Reads out values from mouse position"""
+        coords=self.mapToScene(event.pos())  
+        ycoord=int(coords.y())
+        self.parent.dlg.label.setText("{}".format(self.scene().values[ycoord]))
+        
     def mouseReleaseEvent(self, event):
         """ Catches y coordinate where mousebutton is released, selects data for area mousebutton was pressed"""
         # Something strange happens, but it is no big problem:
