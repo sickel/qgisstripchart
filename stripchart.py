@@ -75,6 +75,7 @@ class StripChart:
         self.view = MouseReadGraphicsView(self.iface)
         self.view.layer=None
         self.pluginIsActive = False
+        self.view.parent=self
         # self.dockwidget = None
 
 
@@ -249,7 +250,7 @@ class StripChart:
         fieldname=self.dlg.cbItem.currentText()
         if fieldname=='' or fieldname is None:
             return
-        values=[]
+        self.scene.values=[]
         request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.view.idfield,fieldname], self.view.layer.fields() )
         iter=self.view.layer.getFeatures(request)
         for feature in iter:
@@ -258,19 +259,19 @@ class StripChart:
                     "Error", "Invalid field type : {}".format(fieldname),
                     level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
                  return
-            values.append(feature[fieldname]) 
+            self.scene.values.append(feature[fieldname]) 
             self.view.ids.append(feature[self.view.idfield])  
-        self.scene.setSceneRect(0,0,self.view.width,len(values))
+        self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
         #self.iface.messageBar().pushMessage(
         #            "Info", "So far, so good {}",format(len(values)),
         #            level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
         self.scene.clear()
-        maxval=max(values)
-        minval=min(values)
+        maxval=max(self.scene.values)
+        minval=min(self.scene.values)
         # TODO: Make a sensible scaling using min and maxval
         scale=self.view.width/maxval
         n=0
-        for v in values:
+        for v in self.scene.values:
             self.scene.addLine(0,n,v*scale,n)
             n+=1
         
@@ -330,6 +331,7 @@ class MouseReadGraphicsView(QGraphicsView):
         self.ids=[]
         self.width=250
         self.idfield='id' # Needs to be userselectable or autoset
+        self.setMouseTracking(True)
         
     def selectmarker(self,y):
         selectpen=QPen(Qt.yellow)
@@ -353,8 +355,14 @@ class MouseReadGraphicsView(QGraphicsView):
             coords=self.mapToScene(event.pos())    
             self.ypress=coords.y() # Storing where the button was clicked
                     
-                    
+
+    def mouseMoveEvent(self,event):
+        coords=self.mapToScene(event.pos())  
+        ycoord=int(coords.y())
+        self.parent.dlg.label.setText("{}".format(self.scene().values[ycoord]))
+        
     def mouseReleaseEvent(self, event):
+        
         if event.button() == 1:
             coords=self.mapToScene(event.pos())  
             yrelease=coords.y()
