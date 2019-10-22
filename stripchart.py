@@ -220,20 +220,38 @@ class StripChart:
         del self.toolbar
 
     #--------------------------------------------------------------------------
+       
+    def setuplayers(self):
+        layers = QgsProject.instance().layerTreeRoot().children()
+        # TODO: Make sure layers within groups are listed
+        self.dlg.cbLayer.clear()
+        for layeritem in layers:
+            # TODO: Is there a better way of getting the layer??? Must be!
+            layername=layeritem.name()
+            layers = QgsProject.instance().mapLayersByName(layername) 
+            if len(layers)==0:
+                return
+            layer = layers[0] # first layer .
+            if "fields" in dir(layer):
+                test=layer.fields()
+                self.dlg.cbLayer.addItems([layer.name()])
+        self.listfields()
+        
 
 
     def listfields(self):
         # When selecting a new layer. List fields for that layer
         self.dlg.cbItem.clear()
         layername=self.dlg.cbLayer.currentText()
-        layers = QgsProject.instance().mapLayersByName(layername) # list of layers with any name
+        layers = QgsProject.instance().mapLayersByName(layername) # list of layers with actual name
         if len(layers)==0:
             return
-        self.view.layer = layers[0] # first layer .
-        fields = self.view.layer.fields().names() #Get Fields
-        # Should only add relevant (i.e. numeric fields)
-        self.dlg.cbItem.addItems(fields) #Added to the comboBox
-    
+        testlayer = layers[0] # first laye r .
+        if "fields" in dir(testlayer):
+            self.view.layer=testlayer
+            fields = self.view.layer.fields().names() #Get Fields
+            self.dlg.cbItem.addItems(fields) #Added to the comboBox
+        
 
     def stripchart(self):
         #self.iface.messageBar().pushMessage(
@@ -274,17 +292,7 @@ class StripChart:
         for v in self.scene.values:
             self.scene.addLine(0,n,v*scale,n)
             n+=1
-        
-    def setuplayers(self):
-        layers = QgsProject.instance().layerTreeRoot().children()
-        self.dlg.cbLayer.clear()
-        for layer in layers:
-        # TODO: Filter so only vector layers are listed
-            # if layer.layer()type==QgsMapLayer.Vectorlayer: - returns nothing...?
-                self.dlg.cbLayer.addItems([layer.name()])
-        self.listfields()
-        
-
+ 
     def run(self):
         """Run method that loads and starts the plugin"""
         self.init=True
@@ -317,11 +325,17 @@ class StripChart:
     def markselected(self):
         if self.view.layer==None:
             return
-        sels=self.view.layer.selectedFeatures() # The selected features in the active (from this plugin's point of view) layer
-        n=len(sels)
-        self.view.clearselection()
-        if n>0:
-            self.view.markselection(sels)
+        try:
+            sels=self.view.layer.selectedFeatures() # The selected features in the active (from this plugin's point of view) layer
+            n=len(sels)
+            self.view.clearselection()
+            if n>0:
+                self.view.markselection(sels)
+        except:
+            self.iface.messageBar().pushMessage(
+                "Error", "Could not select features in layer",
+                level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
+        
 
 class MouseReadGraphicsView(QGraphicsView):
     def __init__(self, iface):
