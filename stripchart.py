@@ -36,7 +36,7 @@ from .stripchart_dockwidget import StripChartDockWidget
 import os.path
 
 from qgis.PyQt.QtGui import QPen
-from qgis.core import QgsProject, Qgis, QgsFeatureRequest, QgsMapLayerProxyModel
+from qgis.core import QgsProject, Qgis, QgsFeatureRequest, QgsMapLayerProxyModel,QgsFieldProxyModel
 from qgis.PyQt.QtWidgets import QGraphicsScene,QApplication,QGraphicsView
 
 
@@ -190,6 +190,7 @@ class StripChart:
         self.scene.setSceneRect(0,0,300,2000)
         self.dlg.qgLayer.setFilters(QgsMapLayerProxyModel.VectorLayer)
         self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer())
+        self.dlg.qgField.setFilters(QgsFieldProxyModel.Numeric)
         self.dlg.qgLayer.layerChanged.connect(lambda: self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer()))
 
 
@@ -219,49 +220,11 @@ class StripChart:
 
     #--------------------------------------------------------------------------
        
-    def setuplayers(self):
-        layers = QgsProject.instance().layerTreeRoot().children()
-        # TODO: Make sure layers within groups are listed
-        # DONE: Listing only layers with a "fields" method
-        self.dlg.cbLayer.clear()
-        for layeritem in layers:
-            # TODO: Is there a better way of getting the layer??? Must be!
-            layername=layeritem.name()
-            layers = QgsProject.instance().mapLayersByName(layername) 
-            if len(layers)==0:
-                return
-            layer = layers[0] # first layer .
-            if "fields" in dir(layer):
-                test=layer.fields()
-                self.dlg.cbLayer.addItems([layer.name()])
-        self.listfields()
-        
-
-
-    def listfields(self):
-        # When selecting a new layer. List fields for that layer
-        self.dlg.cbItem.clear()
-        layername=self.dlg.cbLayer.currentText()
-        layers = QgsProject.instance().mapLayersByName(layername) # list of layers with actual name
-        if len(layers)==0:
-            return
-        testlayer = layers[0] # first laye r .
-        if "fields" in dir(testlayer):
-            self.view.layer=testlayer
-            fields = self.view.layer.fields().names()
-            self.dlg.cbItem.addItems(fields) 
-        
 
     def stripchart(self):
         
-        #layername=self.dlg.cbLayer.currentText()
-        #layers = QgsProject.instance().mapLayersByName(layername) # list of layers with selected name
-        #if len(layers)==0:
-        #    return
-        #self.view.layer = layers[0] # first layer 
         self.view.layer=self.dlg.qgLayer.currentLayer()
         self.view.ids=[] # Keeps the ids .
-        #fieldname=self.dlg.cbItem.currentText()
         fieldname=self.dlg.qgField.currentText()
         if fieldname=='' or fieldname is None:
             return
@@ -298,12 +261,9 @@ class StripChart:
             self.dlg.closingPlugin.connect(self.onClosePlugin)
 
             # show the dockwidget
-            # TODO: fix to allow choice of dock location
             self.iface.mainWindow().addDockWidget(Qt.RightDockWidgetArea, self.dlg)
-            # self.dlg.cbLayer.currentIndexChanged['QString'].connect(self.listfields)
             self.dlg.qgField.currentIndexChanged['QString'].connect(self.stripchart)
             self.iface.mapCanvas().selectionChanged.connect(self.markselected)
-            #self.setuplayers()
             self.dlg.show()
             
     def markselected(self):
