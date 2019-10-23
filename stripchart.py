@@ -287,23 +287,13 @@ class StripChart:
         for v in self.scene.values:
             self.scene.addLine(0,n,v*scale,n)
             n+=1
+        self.markselected() # In case something is selected when the layer is selected
  
     def run(self):
         """Run method that loads and starts the plugin"""
         self.init=True
         if not self.pluginIsActive:
             self.pluginIsActive = True
-
-            #print "** STARTING StripChart"
-
-            # dockwidget may not exist if:
-            #    first run of plugin
-            #    removed on close (see self.onClosePlugin method)
-            #if self.dockwidget == None:
-            #    # Create the dockwidget (after translation) and keep reference
-            #    self.dockwidget = StripChartDockWidget()
-            
-            
 
             # connect to provide cleanup on closing of dockwidget
             self.dlg.closingPlugin.connect(self.onClosePlugin)
