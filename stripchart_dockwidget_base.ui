@@ -18,10 +18,10 @@
     <item row="0" column="0">
      <layout class="QVBoxLayout" name="vlMain">
       <item>
-       <widget class="QComboBox" name="cbLayer"/>
+       <widget class="QgsMapLayerComboBox" name="qgLayer"/>
       </item>
       <item>
-       <widget class="QComboBox" name="cbItem"/>
+       <widget class="QgsFieldComboBox" name="qgField"/>
       </item>
       <item>
        <widget class="QLabel" name="label">
@@ -35,6 +35,18 @@
    </layout>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsFieldComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgsfieldcombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsMapLayerComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgsmaplayercombobox.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

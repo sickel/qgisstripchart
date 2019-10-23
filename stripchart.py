@@ -36,7 +36,7 @@ from .stripchart_dockwidget import StripChartDockWidget
 import os.path
 
 from qgis.PyQt.QtGui import QPen
-from qgis.core import QgsProject, Qgis, QgsFeatureRequest
+from qgis.core import QgsProject, Qgis, QgsFeatureRequest, QgsMapLayerProxyModel
 from qgis.PyQt.QtWidgets import QGraphicsScene,QApplication,QGraphicsView
 
 
@@ -188,7 +188,9 @@ class StripChart:
         self.scene=QGraphicsScene()
         self.view.setScene(self.scene)
         self.scene.setSceneRect(0,0,300,2000)
-            
+        self.dlg.qgLayer.setFilters(QgsMapLayerProxyModel.VectorLayer)
+        self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer())
+        self.dlg.qgLayer.layerChanged.connect(lambda: self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer()))
 
 
     #--------------------------------------------------------------------------
@@ -252,15 +254,15 @@ class StripChart:
 
     def stripchart(self):
         
-        #if self.init:
+        #layername=self.dlg.cbLayer.currentText()
+        #layers = QgsProject.instance().mapLayersByName(layername) # list of layers with selected name
+        #if len(layers)==0:
         #    return
-        layername=self.dlg.cbLayer.currentText()
-        layers = QgsProject.instance().mapLayersByName(layername) # list of layers with selected name
-        if len(layers)==0:
-            return
-        self.view.layer = layers[0] # first layer 
+        #self.view.layer = layers[0] # first layer 
+        self.view.layer=self.dlg.qgLayer.currentLayer()
         self.view.ids=[] # Keeps the ids .
-        fieldname=self.dlg.cbItem.currentText()
+        #fieldname=self.dlg.cbItem.currentText()
+        fieldname=self.dlg.qgField.currentText()
         if fieldname=='' or fieldname is None:
             return
         self.scene.values=[]
@@ -275,9 +277,6 @@ class StripChart:
             self.scene.values.append(feature[fieldname]) 
             self.view.ids.append(feature[self.view.idfield])  
         self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
-        #self.iface.messageBar().pushMessage(
-        #            "Info", "So far, so good {}",format(len(values)),
-        #            level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
         self.scene.clear()
         maxval=max(self.scene.values)
         minval=min(self.scene.values)
@@ -287,7 +286,7 @@ class StripChart:
         for v in self.scene.values:
             self.scene.addLine(0,n,v*scale,n)
             n+=1
-        self.markselected() # In case something is selected when the layer is selected
+        self.markselected() # In case something is already selected when the layer is plotted
  
     def run(self):
         """Run method that loads and starts the plugin"""
@@ -301,10 +300,10 @@ class StripChart:
             # show the dockwidget
             # TODO: fix to allow choice of dock location
             self.iface.mainWindow().addDockWidget(Qt.RightDockWidgetArea, self.dlg)
-            self.dlg.cbLayer.currentIndexChanged['QString'].connect(self.listfields)
-            self.dlg.cbItem.currentIndexChanged['QString'].connect(self.stripchart)
+            # self.dlg.cbLayer.currentIndexChanged['QString'].connect(self.listfields)
+            self.dlg.qgField.currentIndexChanged['QString'].connect(self.stripchart)
             self.iface.mapCanvas().selectionChanged.connect(self.markselected)
-            self.setuplayers()
+            #self.setuplayers()
             self.dlg.show()
             
     def markselected(self):
@@ -358,7 +357,10 @@ class MouseReadGraphicsView(QGraphicsView):
     def mouseMoveEvent(self,event):
         coords=self.mapToScene(event.pos())  
         ycoord=int(coords.y())
-        self.parent.dlg.label.setText("{}".format(self.scene().values[ycoord]))
+        try:
+            self.parent.dlg.label.setText("{}".format(self.scene().values[ycoord]))
+        except IndexError:
+            pass # In case of a short data set, pointing to an area without data.
         
     def mouseReleaseEvent(self, event):
         
