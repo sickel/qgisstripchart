@@ -241,12 +241,22 @@ class StripChart:
             self.view.ids.append(feature[self.view.idfield])  
         self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
         self.scene.clear()
+        fact=0.05
         maxval=max(self.scene.values)
+        if maxval>0:
+            maxval=maxval*1+fact
+        else:
+            maxval=maxval*1-fact
         minval=min(self.scene.values)
+        if minval>0:
+            minval=minval*1-fact
+        else:
+            minval=minval*1+fact
         # TODO: Make a sensible scaling using min and maxval
-        scale=self.view.width/maxval
+        scale=self.view.width/(maxval-minval)
         n=0
         for v in self.scene.values:
+            v=v-minval
             self.scene.addLine(0,n,v*scale,n)
             n+=1
         self.markselected() # In case something is already selected when the layer is plotted
@@ -290,6 +300,7 @@ class MouseReadGraphicsView(QGraphicsView):
         self.width=250
         self.idfield='id' # Needs to be userselectable or autoset
         self.setMouseTracking(True)
+        self.values=[]
         
     def selectmarker(self,y):
         selectpen=QPen(Qt.yellow)
@@ -321,6 +332,8 @@ class MouseReadGraphicsView(QGraphicsView):
             self.parent.dlg.label.setText("{}".format(self.scene().values[ycoord]))
         except IndexError:
             pass # In case of a short data set, pointing to an area without data.
+        except AttributeError:
+            pass # Touching stripchart before it is properly initialised
         
     def mouseReleaseEvent(self, event):
         
