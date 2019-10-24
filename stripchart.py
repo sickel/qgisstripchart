@@ -241,24 +241,26 @@ class StripChart:
             self.view.ids.append(feature[self.view.idfield])  
         self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
         self.scene.clear()
-        air=0.02 
+        airfact=0.02 
         maxval=max(self.scene.values)
+        minval=min(self.scene.values)
         if maxval == None:
             # Field with only "None" values
             return
+        air=(maxval-minval)*airfact
         if maxval>0:
-            maxval*=(1+air)
+            maxval+=air
         else:
-            maxval*=(1-air)
-        minval=min(self.scene.values)
+            maxval-=air
         if minval >0:
-            minval*=(1-air)
+            minval-=air
         else:
-            minval*=(1+air)
+            minval+=air
         # TODO: Make a sensible scaling using min and maxval
-        scale=self.view.width/maxval
+        scale=self.view.width/(maxval-minval)
         n=0
         for v in self.scene.values:
+            v-=minval
             self.scene.addLine(0,n,v*scale,n)
             n+=1
         self.markselected() # In case something is already selected when the layer is plotted
