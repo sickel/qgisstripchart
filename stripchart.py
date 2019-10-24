@@ -191,8 +191,7 @@ class StripChart:
         self.dlg.qgLayer.setFilters(QgsMapLayerProxyModel.VectorLayer)
         self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer())
         self.dlg.qgField.setFilters(QgsFieldProxyModel.Numeric)
-        self.dlg.qgLayer.layerChanged.connect(lambda: self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer()))
-
+        
 
     #--------------------------------------------------------------------------
 
@@ -243,16 +242,18 @@ class StripChart:
         self.scene.clear()
         fact=0.05
         maxval=max(self.scene.values)
+        if maxval==None:
+            return # A layer with only "None" values
         if maxval>0:
-            maxval=maxval*1+fact
+            maxval=maxval*(1+fact)
         else:
-            maxval=maxval*1-fact
+            maxval=maxval*(1-fact)
         minval=min(self.scene.values)
         if minval>0:
             minval=minval*1-fact
         else:
             minval=minval*1+fact
-        # TODO: Make a sensible scaling using min and maxval
+        # DONE: Make a sensible scaling using min and maxval
         scale=self.view.width/(maxval-minval)
         n=0
         for v in self.scene.values:
@@ -274,6 +275,7 @@ class StripChart:
             self.iface.mainWindow().addDockWidget(Qt.RightDockWidgetArea, self.dlg)
             self.dlg.qgField.currentIndexChanged['QString'].connect(self.stripchart)
             self.iface.mapCanvas().selectionChanged.connect(self.markselected)
+            self.dlg.qgLayer.layerChanged.connect(lambda: self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer()))
             self.dlg.show()
             
     def markselected(self):
