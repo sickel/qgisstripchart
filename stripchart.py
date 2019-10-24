@@ -191,7 +191,8 @@ class StripChart:
         self.dlg.qgLayer.setFilters(QgsMapLayerProxyModel.VectorLayer)
         self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer())
         self.dlg.qgField.setFilters(QgsFieldProxyModel.Numeric)
-        
+        self.dlg.qgLayer.layerChanged.connect(lambda: self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer()))
+
 
     #--------------------------------------------------------------------------
 
@@ -240,24 +241,24 @@ class StripChart:
             self.view.ids.append(feature[self.view.idfield])  
         self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
         self.scene.clear()
-        fact=0.05
+        air=0.02 
         maxval=max(self.scene.values)
-        if maxval==None:
-            return # A layer with only "None" values
+        if maxval == None:
+            # Field with only "None" values
+            return
         if maxval>0:
-            maxval=maxval*(1+fact)
+            maxval*=(1+air)
         else:
-            maxval=maxval*(1-fact)
+            maxval*=(1-air)
         minval=min(self.scene.values)
-        if minval>0:
-            minval=minval*1-fact
+        if minval >0:
+            minval*=(1-air)
         else:
-            minval=minval*1+fact
-        # DONE: Make a sensible scaling using min and maxval
-        scale=self.view.width/(maxval-minval)
+            minval*=(1+air)
+        # TODO: Make a sensible scaling using min and maxval
+        scale=self.view.width/maxval
         n=0
         for v in self.scene.values:
-            v=v-minval
             self.scene.addLine(0,n,v*scale,n)
             n+=1
         self.markselected() # In case something is already selected when the layer is plotted
@@ -275,7 +276,6 @@ class StripChart:
             self.iface.mainWindow().addDockWidget(Qt.RightDockWidgetArea, self.dlg)
             self.dlg.qgField.currentIndexChanged['QString'].connect(self.stripchart)
             self.iface.mapCanvas().selectionChanged.connect(self.markselected)
-            self.dlg.qgLayer.layerChanged.connect(lambda: self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer()))
             self.dlg.show()
             
     def markselected(self):
@@ -302,7 +302,6 @@ class MouseReadGraphicsView(QGraphicsView):
         self.width=250
         self.idfield='id' # Needs to be userselectable or autoset
         self.setMouseTracking(True)
-        self.values=[]
         
     def selectmarker(self,y):
         selectpen=QPen(Qt.yellow)
@@ -335,8 +334,8 @@ class MouseReadGraphicsView(QGraphicsView):
         except IndexError:
             pass # In case of a short data set, pointing to an area without data.
         except AttributeError:
-            pass # Touching stripchart before it is properly initialised
-        
+            pass # In case the scene is not initialized yet
+            
     def mouseReleaseEvent(self, event):
         
         if event.button() == 1:
