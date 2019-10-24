@@ -239,7 +239,7 @@ class StripChart:
                  return
             self.scene.values.append(feature[fieldname]) 
             self.view.ids.append(feature[self.view.idfield])
-        self.scene.prepareGeometryChange()
+        # self.scene.prepareGeometryChange()
         self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
         self.scene.clear()
         airfact=0.02 
