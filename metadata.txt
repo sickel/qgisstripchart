@@ -6,7 +6,7 @@
 name=Draw stripchart
 qgisMinimumVersion=3.0
 description=Draws a stripchart for a value from a layer. Shows selected data and can be used to select data
-version=0.41
+version=0.5
 author=Morten Sickel
 email=morten@sickel.net
 
@@ -20,7 +20,8 @@ repository=https://github.com/sickel/qgisstripchart/
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-# changelog=
+# changelog= 
+
 
 # Tags are comma separated with spaces allowed
 tags=stripchart, timeseries

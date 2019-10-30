@@ -239,9 +239,9 @@ class StripChart:
                  return
             self.scene.values.append(feature[fieldname]) 
             self.view.ids.append(feature[self.view.idfield])
-        # self.scene.prepareGeometryChange()
         self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
         self.scene.clear()
+        self.view.selectlines=[]
         airfact=0.02 
         maxval=max(self.scene.values)
         minval=min(self.scene.values)
@@ -257,8 +257,10 @@ class StripChart:
             minval-=air
         else:
             minval+=air
-        # TODO: Make a sensible scaling using min and maxval
-        scale=self.view.width/(maxval-minval)
+        if maxval-minval==0:
+            scale=self.view.width/maxval # Could just as well return since this will plot a straight line...
+        else:
+            scale=self.view.width/(maxval-minval)
         n=0
         for v in self.scene.values:
             v-=minval
@@ -282,6 +284,7 @@ class StripChart:
             self.dlg.show()
             
     def markselected(self):
+        """Marks in the stripchart which elements that are selected"""
         if self.view.layer==None:
             return
         try:
@@ -307,16 +310,19 @@ class MouseReadGraphicsView(QGraphicsView):
         self.setMouseTracking(True)
         
     def selectmarker(self,y):
+        """ Marks one item """
         selectpen=QPen(Qt.yellow)
         markline=self.scene().addLine(0,y,250,y,selectpen)
         markline.setZValue(-1)
         self.selectlines.append(markline)
     
     def clearselection(self):
+        """ Clears the selection from the stripchart """
         for line in self.selectlines:
              self.scene().removeItem(line)
         
     def markselection(self,sels):
+        """ Goes through to mark selected items """
         for sel in sels:
             idval=sel[self.idfield]
             y=self.ids.index(idval)
