@@ -222,14 +222,24 @@ class StripChart:
        
 
     def stripchart(self):
-        
+        print("Starting")
         self.view.layer=self.dlg.qgLayer.currentLayer()
+        idfields=self.view.layer.dataProvider().pkAttributeIndexes() # These are the fields that build up the primary key
+        if len(idfields)==0:
+            self.view.idfield='id'
+        else:
+            #idfield=idfields[0]
+            self.view.idfield=self.view.layer.fields()[idfields[0]].name()
+            self.iface.messageBar().pushMessage(
+                    "Info", "Sorting on  {}".format(self.view.idfield),
+                    level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
+        
         self.view.ids=[] # Keeps the ids .
         fieldname=self.dlg.qgField.currentText()
         if fieldname=='' or fieldname is None:
             return
         self.scene.values=[]
-        request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.view.idfield,fieldname], self.view.layer.fields() )
+        request = QgsFeatureRequest().addOrderBy(self.view.idfield).setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.view.idfield,fieldname], self.view.layer.fields() )
         iter=self.view.layer.getFeatures(request)
         for feature in iter:
             if isinstance(feature[fieldname],list):
