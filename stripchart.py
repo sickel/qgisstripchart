@@ -208,15 +208,8 @@ class StripChart:
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
-<<<<<<< HEAD
         # disconnects
         self.dlg.closingPlugin.disconnect(self.onClosePlugin)
-=======
-
-        # disconnects
-        self.dlg.closingPlugin.disconnect(self.onClosePlugin)
-
->>>>>>> qgisdropbox
         self.pluginIsActive = False
 
 
@@ -231,43 +224,28 @@ class StripChart:
         del self.toolbar
 
     #--------------------------------------------------------------------------
-<<<<<<< HEAD
-
-
-    def listfields(self):
-        """ When selecting a new layer. List fields for that layer"""
-        # TODO: Check if the existing fieldname still is in the list, if so, select that
-        self.dlg.cbItem.clear()
-        layername=self.dlg.cbLayer.currentText()
-        layers = QgsProject.instance().mapLayersByName(layername) # list of layers with any name
-        if len(layers)==0:
-            return
-        self.view.layer = layers[0] # first layer with actual name. Need to somehow handle if several layers with same name.
-        fields = self.view.layer.fields().names() #Get Fields
-        # TODO: Should only add relevant (i.e. numeric) fields
-        self.dlg.cbItem.addItems(fields) #Added to the comboBox
-    
-
-    def stripchart(self):
-        """ Finds the data to draw, scales the chart and draws the data"""
-        layername=self.dlg.cbLayer.currentText()
-        layers = QgsProject.instance().mapLayersByName(layername) # list of layers with selected name
-        if len(layers)==0:
-            return # IT has somehow been called with an invalid layer name
-        self.view.layer = layers[0] # first layer with the actual name
-=======
        
 
     def stripchart(self):
-        
+        print("Starting")
         self.view.layer=self.dlg.qgLayer.currentLayer()
+        idfields=self.view.layer.dataProvider().pkAttributeIndexes() # These are the fields that build up the primary key
+        if len(idfields)==0:
+            self.view.idfield='id'
+        else:
+            #idfield=idfields[0]
+            self.view.idfield=self.view.layer.fields()[idfields[0]].name()
+            self.iface.messageBar().pushMessage(
+                    "Info", "Sorting on  {}".format(self.view.idfield),
+                    level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
+        
 >>>>>>> qgisdropbox
         self.view.ids=[] # Keeps the ids .
         fieldname=self.dlg.qgField.currentText()
         if fieldname=='' or fieldname is None:
             return # Called with invalid field name
         self.scene.values=[]
-        request = QgsFeatureRequest().addOrderBy('Id').setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.view.idfield,fieldname], self.view.layer.fields() )
+        request = QgsFeatureRequest().addOrderBy(self.view.idfield).setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.view.idfield,fieldname], self.view.layer.fields() )
         iter=self.view.layer.getFeatures(request)
         for feature in iter:
             if isinstance(feature[fieldname],list):
@@ -278,65 +256,43 @@ class StripChart:
                  self.iface.messageBar().pushMessage(
                     "Error", "Invalid field type : {}".format(fieldname),
                     level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
-                 return # Invalid field type
-            self.view.values.append(feature[fieldname]) 
-            # TODO: Mouse action to read out values from stripchart
-            # USing values[] to find min and max values and to find the number of features
-            self.view.ids.append(feature[self.view.idfield])  
+                 return
+            self.scene.values.append(feature[fieldname]) 
+            self.view.ids.append(feature[self.view.idfield])
         self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
         self.scene.clear()
-        fact=0.05
+        self.view.selectlines=[]
+        airfact=0.02 
         maxval=max(self.scene.values)
-        if maxval>0:
-            maxval=maxval*1+fact
-        else:
-            maxval=maxval*1-fact
         minval=min(self.scene.values)
-        if minval>0:
-            minval=minval*1-fact
+        if maxval == None:
+            # Field with only "None" values
+            return
+        air=(maxval-minval)*airfact
+        if maxval>0:
+            maxval+=air
         else:
-            minval=minval*1+fact
-        # TODO: Make a sensible scaling using min and maxval
-        scale=self.view.width/(maxval-minval)
+            maxval-=air
+        if minval >0:
+            minval-=air
+        else:
+            minval+=air
+        if maxval-minval==0:
+            scale=self.view.width/maxval # Could just as well return since this will plot a straight line...
+        else:
+            scale=self.view.width/(maxval-minval)
         n=0
         for v in self.scene.values:
-            v=v-minval
+            v-=minval
             self.scene.addLine(0,n,v*scale,n)
             n+=1
-<<<<<<< HEAD
-        
-    def setuplayers(self):
-        """ Listing of layers """
-        # TODO: Filter so only vector layers are listed
-        layers = QgsProject.instance().layerTreeRoot().children()
-        self.dlg.cbLayer.clear()
-        for layer in layers:
-            # if layer.layer()type==QgsMapLayer.Vectorlayer: ## returns nothing...?
-                self.dlg.cbLayer.addItems([layer.name()])
-        self.listfields()
-        
-
-=======
         self.markselected() # In case something is already selected when the layer is plotted
  
->>>>>>> qgisdropbox
     def run(self):
         """Run method that loads and starts the plugin"""
         self.init=True
         if not self.pluginIsActive:
             self.pluginIsActive = True
-<<<<<<< HEAD
-            # connect to provide cleanup on closing of dockwidget
-            self.dlg.closingPlugin.connect(self.onClosePlugin)
-            self.iface.mainWindow().addDockWidget(Qt.RightDockWidgetArea, self.dlg)
-            # Move to initGui() - did not seem to work
-            self.dlg.cbLayer.currentIndexChanged['QString'].connect(self.listfields)
-            self.dlg.cbItem.currentIndexChanged['QString'].connect(self.stripchart)
-            self.iface.mapCanvas().selectionChanged.connect(self.markselected)
-            self.setuplayers() # Loading layers. If moved to initGui() it will run before project is loaded.
-            # Per now: Needs to close and reopen plugin to update layer list
-            # TODO: FInd way to update dynamically. Important: Do not redraw stripchart accidentially
-=======
 
             # connect to provide cleanup on closing of dockwidget
             self.dlg.closingPlugin.connect(self.onClosePlugin)
@@ -345,11 +301,10 @@ class StripChart:
             self.iface.mainWindow().addDockWidget(Qt.RightDockWidgetArea, self.dlg)
             self.dlg.qgField.currentIndexChanged['QString'].connect(self.stripchart)
             self.iface.mapCanvas().selectionChanged.connect(self.markselected)
->>>>>>> qgisdropbox
             self.dlg.show()
             
     def markselected(self):
-        """ Run when the selection is changed. Kicks of the redrawing to a method in the graphics view"""
+        """Marks in the stripchart which elements that are selected"""
         if self.view.layer==None:
             return
         try:
@@ -375,10 +330,9 @@ class MouseReadGraphicsView(QGraphicsView):
         self.idfield='id'   # Needs to be userselectable or autoset
         # TODO: set default to "id", if no id, set to "fid". If neither, refuse to plot from layer
         self.setMouseTracking(True)
-        self.values=[]
         
     def selectmarker(self,y):
-        """ Drawing a yellow line behind the stripchart to mark a selected items"""
+        """ Marks one item """
         selectpen=QPen(Qt.yellow)
         # TODO: Set to same color as selection color in the data set or set userselectable
         markline=self.scene().addLine(0,y,250,y,selectpen) 
@@ -386,12 +340,12 @@ class MouseReadGraphicsView(QGraphicsView):
         self.selectlines.append(markline)  # Stores it so that it can be deleted later on
     
     def clearselection(self):
-        """ Delete all lines in strip chart showing selections """
+        """ Clears the selection from the stripchart """
         for line in self.selectlines:
              self.scene().removeItem(line)
         
     def markselection(self,sels):
-        """ Goes through selected items to mark them in the stripchart """
+        """ Goes through to mark selected items """
         for sel in sels:
             idval=sel[self.idfield]
             y=self.ids.index(idval)
@@ -414,8 +368,8 @@ class MouseReadGraphicsView(QGraphicsView):
         except IndexError:
             pass # In case of a short data set, pointing to an area without data.
         except AttributeError:
-            pass # Touching stripchart before it is properly initialised
-        
+            pass # In case the scene is not initialized yet
+            
     def mouseReleaseEvent(self, event):
         """ Catches y coordinate where mousebutton is released, selects data for area mousebutton was pressed"""
         # Something strange happens, but it is no big problem:

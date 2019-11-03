@@ -5,10 +5,8 @@
 [general]
 name=Draw stripchart
 qgisMinimumVersion=3.0
-description=Draws a strip chart for a feature from a layer. This is primarily intended for timeseries, but may be used and 
-make sense for any sortable data. Presently the dataset is being sorted by the field "id". The only way to sort 
-on another field is to change the value idfield. In a future version, this  value will be user selectable.
-version=0.4
+description=Draws a stripchart for a value from a layer. Shows selected data and can be used to select data
+version=0.5
 author=Morten Sickel
 email=morten@sickel.net
 
@@ -22,7 +20,8 @@ repository=https://github.com/sickel/qgisstripchart/
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-# changelog=
+# changelog= 
+
 
 # Tags are comma separated with spaces allowed
 tags=stripchart, timeseries
