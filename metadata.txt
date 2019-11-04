@@ -5,7 +5,7 @@
 [general]
 name=Draw stripchart
 qgisMinimumVersion=3.0
-description=Draws a stripchart for a value from a layer. Shows selected data and can be used to select data
+description=Draws a stripchart for a value from a layer. Shows selected data and can be used to select data. The plot will be sorted on the (first field of the) primary key of the data set. If the dataset has no primary key, the data will be plotted, sorted on "id" if that field exists, it will not be possible to select data in the stripchart in this case.
 version=0.5
 author=Morten Sickel
 email=morten@sickel.net
@@ -24,7 +24,7 @@ hasProcessingProvider=no
 
 
 # Tags are comma separated with spaces allowed
-tags=stripchart, timeseries
+tags=stripchart,timeseries,radioactivity,gamma monitoring, 
 
 homepage=https://github.com/sickel/qgisstripchart/
 category=Database  Timeseries 

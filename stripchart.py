@@ -227,6 +227,10 @@ class StripChart:
         idfields=self.view.layer.dataProvider().pkAttributeIndexes() # These are the fields that build up the primary key
         if len(idfields)==0:
             self.view.idfield='id'
+            self.iface.messageBar().pushMessage(
+                    "Warning", "No primary key, sorting on  {}".format(self.view.idfield),
+                    level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
+        
         else:
             #idfield=idfields[0]
             self.view.idfield=self.view.layer.fields()[idfields[0]].name()
@@ -305,7 +309,7 @@ class StripChart:
                 self.view.markselection(sels)
         except:
             self.iface.messageBar().pushMessage(
-                "Error", "Could not select features in layer",
+                "Error", "Error during selection",
                 level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
         
 
