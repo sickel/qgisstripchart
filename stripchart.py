@@ -228,17 +228,13 @@ class StripChart:
         self.view.layer=self.dlg.qgLayer.currentLayer()
         idfields=self.view.layer.dataProvider().pkAttributeIndexes() # These are the fields that build up the primary key
         if len(idfields)==0:
-            self.view.idfield='id'
-            self.iface.messageBar().pushMessage(
-                    "Warning", "No primary key, sorting on  {}".format(self.view.idfield),
-                    level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
-        
+            self.view.idfield=self.view.layer.fields()[0].name()
         else:
             #idfield=idfields[0]
             self.view.idfield=self.view.layer.fields()[idfields[0]].name()
-            self.iface.messageBar().pushMessage(
-                    "Info", "Sorting on  {}".format(self.view.idfield),
-                    level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
+        self.iface.messageBar().pushMessage(
+            "Info", "Sorting on  {}".format(self.view.idfield),
+            level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
         
         self.view.ids=[] # Keeps the ids .
         fieldname=self.dlg.qgField.currentText()
@@ -353,8 +349,8 @@ class MouseReadGraphicsView(QGraphicsView):
                 idval=sel[self.idfield]
                 y=self.ids.index(idval)
                 self.selectmarker(y)
-            except: # Ignore problems when
-                QgsMessageLog.logMessage("Selectionproblem", "Messages", Qgis.Warning)
+            except Exception as e: # Ignore problems when
+                QgsMessageLog.logMessage("Error when drawing: {}".format(str(e)), "Messages", Qgis.Warning)
                 pass
         
     #TODO - handle ctrl and/or shift click and drags correctly
