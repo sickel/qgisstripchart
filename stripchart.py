@@ -37,6 +37,7 @@ import os.path
 
 from qgis.PyQt.QtGui import QPen
 from qgis.core import QgsProject, Qgis, QgsFeatureRequest, QgsMapLayerProxyModel,QgsFieldProxyModel
+from qgis.core import QgsMessageLog
 from qgis.PyQt.QtWidgets import QGraphicsScene,QApplication,QGraphicsView
 
 
@@ -75,7 +76,7 @@ class StripChart:
         self.toolbar = self.iface.addToolBar(u'Stripchart')
         self.toolbar.setObjectName(u'Stripchart')
 
-        #print "** INITIALIZING StripChart"
+        #QgsMessageLog.logMessage(message, tag, level)("** INITIALIZING StripChart")
         self.view = MouseReadGraphicsView(self.iface)
         self.view.layer=None
         self.pluginIsActive = False
@@ -222,7 +223,8 @@ class StripChart:
        
 
     def stripchart(self):
-        print("Starting")
+        QgsMessageLog.logMessage("Stripchart starting", "Messages", 0)
+                
         self.view.layer=self.dlg.qgLayer.currentLayer()
         idfields=self.view.layer.dataProvider().pkAttributeIndexes() # These are the fields that build up the primary key
         if len(idfields)==0:
@@ -253,6 +255,7 @@ class StripChart:
                  return
             self.scene.values.append(feature[fieldname]) 
             self.view.ids.append(feature[self.view.idfield])
+            # QgsMessageLog.logMessage("Added id {}".format(feature[self.view.idfield]), "Messages", Qgis.Info)
         self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
         self.scene.clear()
         self.view.selectlines=[]
@@ -302,14 +305,20 @@ class StripChart:
         if self.view.layer==None:
             return
         try:
+            QgsMessageLog.logMessage("Going to look into selection", "Messages", Qgis.Info)
+            
             sels=self.view.layer.selectedFeatures() # The selected features in the active (from this plugin's point of view) layer
             n=len(sels)
+            QgsMessageLog.logMessage("Selected {}".format(n), "Messages", Qgis.Info)
+                
             self.view.clearselection()
+            QgsMessageLog.logMessage("Selection cleared", "Messages", Qgis.Info)
+            
             if n>0:
                 self.view.markselection(sels)
         except:
             self.iface.messageBar().pushMessage(
-                "Error", "Error during selection",
+                "Error", "Error during selection from {}",format(self.view.layer.name()),
                 level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
         
 
@@ -337,17 +346,23 @@ class MouseReadGraphicsView(QGraphicsView):
         
     def markselection(self,sels):
         """ Goes through to mark selected items """
+        QgsMessageLog.logMessage("Going to mark selected", "Messages", Qgis.Info)
+                
         for sel in sels:
-            idval=sel[self.idfield]
-            y=self.ids.index(idval)
-            self.selectmarker(y)
+            try:
+                idval=sel[self.idfield]
+                y=self.ids.index(idval)
+                self.selectmarker(y)
+            except: # Ignore problems when
+                QgsMessageLog.logMessage("Selectionproblem", "Messages", Qgis.Warning)
+                pass
         
     #TODO - handle ctrl and/or shift click and drags correctly
     def mousePressEvent(self, event):
         if event.button() == 1:
             coords=self.mapToScene(event.pos())    
             self.ypress=coords.y() # Storing where the button was clicked
-                    
+            
 
     def mouseMoveEvent(self,event):
         coords=self.mapToScene(event.pos())  
@@ -374,6 +389,7 @@ class MouseReadGraphicsView(QGraphicsView):
             ymax=int(max(yrelease,self.ypress))
             if ymin==ymax:
                 ymax+=1
+            QgsMessageLog.logMessage("Marking from {} to {}".format(ymin,ymax), "Messages", Qgis.Info)
             selectedids=self.ids[ymin:ymax]
             self.layer.select(selectedids)
             self.ypress=None
