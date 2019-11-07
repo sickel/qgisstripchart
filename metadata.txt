@@ -6,7 +6,7 @@
 name=Stripchartdrawer
 description=The plugin draws a stripchart for a selected value from a dataset.
 qgisMinimumVersion=3.0
-version=0.5
+version=0.6
 author=Morten Sickel
 email=morten@sickel.net
 
@@ -20,7 +20,7 @@ repository=https://github.com/sickel/qgisstripchart/
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-# changelog= 
+changelog=Cleaned up actions when selecting a new layer.Better handling of sort keys. Not longer experimental
 
 
 # Tags are comma separated with spaces allowed
@@ -30,7 +30,7 @@ homepage=https://github.com/sickel/qgisstripchart/
 category=Database  Timeseries 
 icon=icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
