@@ -173,7 +173,12 @@ class StripChart:
 
         return action
 
-
+    def selectedlayer(self):
+            self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer())
+            self.dlg.qgField.setField(None)
+            self.clearscene()
+            
+            
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
@@ -190,10 +195,13 @@ class StripChart:
         self.view.setScene(self.scene)
         self.scene.setSceneRect(0,0,300,2000)
         self.dlg.qgLayer.setFilters(QgsMapLayerProxyModel.VectorLayer)
+        self.dlg.qgField.setAllowEmptyFieldName(True)
         self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer())
         self.dlg.qgField.setFilters(QgsFieldProxyModel.Numeric)
-        self.dlg.qgLayer.layerChanged.connect(lambda: self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer()))
-
+        self.dlg.qgLayer.layerChanged.connect(self.selectedlayer)
+        self.iface.mapCanvas().selectionChanged.connect(self.markselected)
+        self.dlg.qgField.currentIndexChanged['QString'].connect(self.stripchart)
+                
 
     #--------------------------------------------------------------------------
 
@@ -220,27 +228,34 @@ class StripChart:
         del self.toolbar
 
     #--------------------------------------------------------------------------
-       
+    
+    
+    def clearscene(self):
+        self.scene.clear()
+        self.view.selectlines=[]
+        self.scene.values=[]
+        self.view.ids=[] # Keeps the ids .
+        
 
     def stripchart(self):
         QgsMessageLog.logMessage("Stripchart starting", "Messages", 0)
-                
+        self.clearscene()
         self.view.layer=self.dlg.qgLayer.currentLayer()
         idfields=self.view.layer.dataProvider().pkAttributeIndexes() # These are the fields that build up the primary key
         if len(idfields)==0:
             self.view.idfield=self.view.layer.fields()[0].name()
+            self.iface.messageBar().pushMessage(
+                "Warning", "No primary key for {}, sorting on {}, - selection may not be possible".format(self.view.layer.name(),self.view.idfield),
+                level=Qgis.Warning) # Info, Warning, Critical, Success
         else:
             #idfield=idfields[0]
             self.view.idfield=self.view.layer.fields()[idfields[0]].name()
-        self.iface.messageBar().pushMessage(
-            "Info", "Sorting on  {}".format(self.view.idfield),
-            level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
-        
-        self.view.ids=[] # Keeps the ids .
+            self.iface.messageBar().pushMessage(
+                "Info", "Sorting on  {}".format(self.view.idfield),
+                level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
         fieldname=self.dlg.qgField.currentText()
         if fieldname=='' or fieldname is None:
             return
-        self.scene.values=[]
         request = QgsFeatureRequest().addOrderBy(self.view.idfield).setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.view.idfield,fieldname], self.view.layer.fields() )
         iter=self.view.layer.getFeatures(request)
         for feature in iter:
@@ -253,8 +268,6 @@ class StripChart:
             self.view.ids.append(feature[self.view.idfield])
             # QgsMessageLog.logMessage("Added id {}".format(feature[self.view.idfield]), "Messages", Qgis.Info)
         self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
-        self.scene.clear()
-        self.view.selectlines=[]
         airfact=0.02 
         maxval=max(self.scene.values)
         minval=min(self.scene.values)
@@ -292,8 +305,6 @@ class StripChart:
 
             # show the dockwidget
             self.iface.mainWindow().addDockWidget(Qt.RightDockWidgetArea, self.dlg)
-            self.dlg.qgField.currentIndexChanged['QString'].connect(self.stripchart)
-            self.iface.mapCanvas().selectionChanged.connect(self.markselected)
             self.dlg.show()
             
     def markselected(self):
