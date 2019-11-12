@@ -195,6 +195,7 @@ class StripChart:
         self.view.setScene(self.scene)
         self.scene.setSceneRect(0,0,300,2000)
         self.dlg.qgLayer.setFilters(QgsMapLayerProxyModel.VectorLayer)
+        self.dlg.qgLayer.setLayer(self.iface.activeLayer())
         self.dlg.qgField.setAllowEmptyFieldName(True)
         self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer())
         self.dlg.qgField.setFilters(QgsFieldProxyModel.Numeric)
@@ -238,6 +239,8 @@ class StripChart:
         
 
     def stripchart(self):
+        if self.view.layer == None:
+            return
         QgsMessageLog.logMessage("Stripchart starting", "Messages", 0)
         self.clearscene()
         self.view.layer=self.dlg.qgLayer.currentLayer()
@@ -312,6 +315,8 @@ class StripChart:
         if self.view.layer==None:
             return
         try:
+            if self.view.layer==None:
+                return
             QgsMessageLog.logMessage("Going to look into selection", "Messages", Qgis.Info)
             
             sels=self.view.layer.selectedFeatures() # The selected features in the active (from this plugin's point of view) layer
@@ -354,7 +359,7 @@ class MouseReadGraphicsView(QGraphicsView):
     def markselection(self,sels):
         """ Goes through to mark selected items """
         QgsMessageLog.logMessage("Going to mark selected", "Messages", Qgis.Info)
-                
+        
         for sel in sels:
             try:
                 idval=sel[self.idfield]
