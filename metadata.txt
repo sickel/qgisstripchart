@@ -6,7 +6,7 @@
 name=Stripchartdrawer
 description=The plugin draws a stripchart for a selected value from a dataset.
 qgisMinimumVersion=3.0
-version=0.6
+version=0.61
 author=Morten Sickel
 email=morten@sickel.net
 
@@ -20,8 +20,7 @@ repository=https://github.com/sickel/qgisstripchart/
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=Cleaned up actions when selecting a new layer.Better handling of sort keys. Not longer experimental
-
+changelog=Got rid of some unneeded error messages
 
 # Tags are comma separated with spaces allowed
 tags=stripchart,timeseries,radioactivity,gamma monitoring

@@ -174,6 +174,8 @@ class StripChart:
         return action
 
     def selectedlayer(self):
+            if self.dlg.qgLayer.currentLayer() == None:
+                return
             self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer())
             self.dlg.qgField.setField(None)
             self.clearscene()
@@ -239,17 +241,23 @@ class StripChart:
         
 
     def stripchart(self):
+        self.view.layer=self.dlg.qgLayer.currentLayer()
         if self.view.layer == None:
             return
         QgsMessageLog.logMessage("Stripchart starting", "Messages", 0)
         self.clearscene()
-        self.view.layer=self.dlg.qgLayer.currentLayer()
         idfields=self.view.layer.dataProvider().pkAttributeIndexes() # These are the fields that build up the primary key
         if len(idfields)==0:
-            self.view.idfield=self.view.layer.fields()[0].name()
-            self.iface.messageBar().pushMessage(
-                "Warning", "No primary key for {}, sorting on {}, - selection may not be possible".format(self.view.layer.name(),self.view.idfield),
-                level=Qgis.Warning) # Info, Warning, Critical, Success
+            try:
+                self.view.idfield=self.view.layer.fields()[0].name()
+                self.iface.messageBar().pushMessage(
+                    "Warning", "No primary key for {}, sorting on {}, - selection may not be possible".format(self.view.layer.name(),self.view.idfield),
+                    level=Qgis.Warning) # Info, Warning, Critical, Success
+            except IndexError as e:
+                # Probably undefined layer, just return
+                # This happens some times when exiting QGIS
+                QgsMessageLog.logMessage("Could not draw stripchart - IndexError", "Messages", Qgis.Warning)
+                return
         else:
             #idfield=idfields[0]
             self.view.idfield=self.view.layer.fields()[idfields[0]].name()
@@ -312,13 +320,10 @@ class StripChart:
             
     def markselected(self):
         """Marks in the stripchart which elements that are selected"""
-        if self.view.layer==None:
-            return
         try:
             if self.view.layer==None:
                 return
             QgsMessageLog.logMessage("Going to look into selection", "Messages", Qgis.Info)
-            
             sels=self.view.layer.selectedFeatures() # The selected features in the active (from this plugin's point of view) layer
             n=len(sels)
             QgsMessageLog.logMessage("Selected {}".format(n), "Messages", Qgis.Info)
