@@ -77,6 +77,10 @@ PLUGIN_UPLOAD = $(c)/plugin_upload.py
 
 RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g' | tr '\n' ' ')
 
+install:
+	/bin/cp -ar * ~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/stripchart/
+
+
 .PHONY: default
 default:
 	@echo While you can use make to build and deploy your plugin, pb_tool

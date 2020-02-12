@@ -241,8 +241,11 @@ class StripChart:
         
 
     def stripchart(self):
+        """
+        Draws a stripchart based on a dataset
+        """
         self.view.layer=self.dlg.qgLayer.currentLayer()
-        if self.view.layer == None:
+        if self.view.layer == None or self.dlg.isHidden():
             return
         QgsMessageLog.logMessage("Stripchart starting", "Messages", 0)
         self.clearscene()
@@ -282,6 +285,7 @@ class StripChart:
         airfact=0.02 
         maxval=max(self.scene.values)
         minval=min(self.scene.values)
+        print(maxval,minval)
         if maxval == None:
             # Field with only "None" values
             return
@@ -334,10 +338,14 @@ class StripChart:
             if n>0:
                 self.view.markselection(sels)
         except:
-            self.iface.messageBar().pushMessage(
-                "Error", "Error during selection from {}",format(self.view.layer.name()),
-                level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
-        
+            try:
+                self.iface.messageBar().pushMessage(
+                    "Error", "Error during selection from {}".format(self.view.layer.name()),
+                    level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
+            except:
+                self.iface.messageBar().pushMessage(
+                    "Error", "Error during selection ",
+                    level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
 
 class MouseReadGraphicsView(QGraphicsView):
     def __init__(self, iface):
