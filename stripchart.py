@@ -72,7 +72,7 @@ class StripChart:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&Stripchart')
+        self.menu = self.tr(u'Spectral data')
         self.toolbar = self.iface.addToolBar(u'Stripchart')
         self.toolbar.setObjectName(u'Stripchart')
 
@@ -165,7 +165,7 @@ class StripChart:
             self.toolbar.addAction(action)
 
         if add_to_menu:
-            self.iface.addPluginToDatabaseMenu(
+            self.iface.addPluginToVectorMenu(
                 self.menu,
                 action)
 
@@ -223,8 +223,8 @@ class StripChart:
         #print "** UNLOAD StripChart"
 
         for action in self.actions:
-            self.iface.removePluginDatabaseMenu(
-                self.tr(u'Stripchart'),
+            self.iface.removePluginVectorMenu(
+                self.tr(u'Spectral data'),
                 action)
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
@@ -246,6 +246,11 @@ class StripChart:
         """
         self.view.layer=self.dlg.qgLayer.currentLayer()
         if self.view.layer == None or self.dlg.isHidden():
+            return
+        if self.view.layer.featureCount()==0:
+            self.iface.messageBar().pushMessage(
+                "Stripchart", "No data in table, cannot draw stripchart",
+                level=Qgis.Critical, duration=3) # Info, Warning, Critical, Success
             return
         QgsMessageLog.logMessage("Stripchart starting", "Messages", 0)
         self.clearscene()
@@ -340,13 +345,19 @@ class StripChart:
         except:
             try:
                 self.iface.messageBar().pushMessage(
-                    "Error", "Error during selection from {}".format(self.view.layer.name()),
+                    "Stripchart", "Error during selection from {}".format(self.view.layer.name()),
                     level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
-            except:
+            except RuntimeError:
+                print("Error in markselected:")
+                print(e)
+            except Exception as e:
                 self.iface.messageBar().pushMessage(
-                    "Error", "Error during selection ",
+                    "Stripchart", "Error during selection ",
                     level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
-
+                print(e)
+                print(self.view.layer.name())
+                
+                
 class MouseReadGraphicsView(QGraphicsView):
     def __init__(self, iface):
         self.iface = iface
