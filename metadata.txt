@@ -6,11 +6,12 @@
 name=Stripchartdrawer
 description=The plugin draws a stripchart for a selected value from a dataset.
 qgisMinimumVersion=3.0
-version=0.63
+version=0.66
 author=Morten Sickel
 email=morten@sickel.net
 
-about=Draws a stripchart for a value from a layer. Shows selected data and can be used to select data. 
+about=Draws a stripchart for a value from a layer. 
+  Shows selected data and can be used to select data. 
   The plot will be sorted on the (first field of the) primary key of the data set. If the dataset has no primary key, the data will be plotted, sorted on "id" if that field exists, it may not be possible to select data in the stripchart in this case.
 
 tracker=https://github.com/sickel/qgisstripchart/
@@ -29,7 +30,6 @@ changelog=0.63 Fixed icons. Moved to vector/Spectral data menu
 tags=stripchart,timeseries,radioactivity,gamma
 
 homepage=https://github.com/sickel/qgisstripchart/
-category=Database  Timeseries 
 icon=icon.png
 # experimental flag
 experimental=False
