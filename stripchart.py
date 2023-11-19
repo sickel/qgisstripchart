@@ -255,7 +255,7 @@ class StripChart:
         if self.view.layer.featureCount()==0:
             self.iface.messageBar().pushMessage(
                 "Stripchart", "No data in table, cannot draw stripchart",
-                level=Qgis.Critical, duration=3) # Info, Warning, Critical, Success
+                level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
             return
         QgsMessageLog.logMessage("Stripchart starting", "Messages", 0)
         self.clearscene()
@@ -264,7 +264,7 @@ class StripChart:
             try:
                 self.view.idfield=self.view.layer.fields()[0].name()
                 self.iface.messageBar().pushMessage(
-                    "Warning", "No primary key for {}, sorting on {}, - selection may not be possible".format(self.view.layer.name(),self.view.idfield),
+                    "Stripchart", "No primary key for {}, sorting on {}, - selection may not be possible".format(self.view.layer.name(),self.view.idfield),
                     level=Qgis.Warning) # Info, Warning, Critical, Success
             except IndexError as e:
                 # Probably undefined layer, just return
@@ -275,7 +275,7 @@ class StripChart:
             #idfield=idfields[0]
             self.view.idfield=self.view.layer.fields()[idfields[0]].name()
             self.iface.messageBar().pushMessage(
-                "Info", "Sorting on  {}".format(self.view.idfield),
+                "Stripchart", "Sorting on  {}".format(self.view.idfield),
                 level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
         fieldname=self.dlg.qgField.currentText()
         if fieldname=='' or fieldname is None:
@@ -285,7 +285,7 @@ class StripChart:
         for feature in iter:
             if isinstance(feature[fieldname],list):
                  self.iface.messageBar().pushMessage(
-                    "Error", "Invalid field type : {}".format(fieldname),
+                    "Stripchart", "Invalid field type : {}".format(fieldname),
                     level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
                  return
             self.scene.values.append(feature[fieldname]) 
