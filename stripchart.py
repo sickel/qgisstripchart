@@ -54,7 +54,7 @@ class StripChart:
         """
         # Save reference to the QGIS interface
         self.iface = iface
-
+        
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
@@ -79,7 +79,13 @@ class StripChart:
         #QgsMessageLog.logMessage(message, tag, level)("** INITIALIZING StripChart")
         self.view = MouseReadGraphicsView(self.iface)
         self.view.layer=None
-        self.pluginIsActive = False
+        self.dlg=StripChartDockWidget(self.iface.mainWindow())
+        try:
+            self.dlg.close()
+        except:
+            print("Should not be open here")
+        self.pluginIsActive = None
+        
         self.view.parent=self
         # self.dockwidget = None
 
@@ -183,14 +189,13 @@ class StripChart:
             
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
+        self.pluginIsActive = False
         icon_path = ':/plugins/stripchart/icon.png'
         self.add_action(
             icon_path,
             text=self.tr(u'Stripchart'),
             callback=self.run,
             parent=self.iface.mainWindow())
-        self.dlg=StripChartDockWidget(self.iface.mainWindow())
         self.view.setParent(self.dlg) 
         self.dlg.vlMain.addWidget(self.view)
         self.scene=QGraphicsScene()
