@@ -3,3 +3,4 @@
 help/build
 *autosave
 *.kate-swp
+zip_build/*
