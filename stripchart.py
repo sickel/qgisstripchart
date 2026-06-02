@@ -3,12 +3,12 @@
 /***************************************************************************
  StripChart
                                  A QGIS plugin
-Draws a strip chart for a feature from a layer. This is primarily intended for 
+Draws a strip chart for a feature from a layer. This is primarily intended for
  timeseries, but may be used and make sense for any sortable data.
- Presently the dataset is being sorted by the field "id". The only way to sort 
- on another field is to change the value idfield. In a future version, this 
+ Presently the dataset is being sorted by the field "id". The only way to sort
+ on another field is to change the value idfield. In a future version, this
  value will be user selectable.
- 
+
  -------------------
         begin                : 2019-10-13
         git sha              : $Format:%H$
@@ -36,9 +36,8 @@ from .stripchart_dockwidget import StripChartDockWidget
 import os.path
 
 from qgis.PyQt.QtGui import QPen
-from qgis.core import QgsProject, Qgis, QgsFeatureRequest, QgsMapLayerProxyModel,QgsFieldProxyModel
-from qgis.core import QgsMessageLog
-from qgis.PyQt.QtWidgets import QGraphicsScene,QApplication,QGraphicsView
+from qgis.core import QgsProject, Qgis, QgsFeatureRequest, QgsMapLayerProxyModel, QgsFieldProxyModel, QgsMessageLog
+from qgis.PyQt.QtWidgets import QGraphicsScene, QApplication, QGraphicsView
 
 
 class StripChart:
@@ -54,7 +53,7 @@ class StripChart:
         """
         # Save reference to the QGIS interface
         self.iface = iface
-        
+
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
@@ -76,21 +75,21 @@ class StripChart:
         self.toolbar = self.iface.addToolBar(u'Stripchart')
         self.toolbar.setObjectName(u'Stripchart')
 
-        #QgsMessageLog.logMessage(message, tag, level)("** INITIALIZING StripChart")
+        # QgsMessageLog.logMessage(message, tag, level)("** INITIALIZING StripChart")
         self.view = MouseReadGraphicsView(self.iface)
-        self.view.layer=None
-        self.dlg=StripChartDockWidget(self.iface.mainWindow())
+        self.view.layer = None
+        self.dlg = StripChartDockWidget(self.iface.mainWindow())
         try:
             self.dlg.close()
         except:
             print("Should not be open here")
         self.pluginIsActive = None
-        
-        self.view.parent=self
+
+        self.view.parent = self
         # self.dockwidget = None
 
-
     # noinspection PyMethodMayBeStatic
+
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
 
@@ -105,18 +104,17 @@ class StripChart:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('Stripchart', message)
 
-
     def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
+            self,
+            icon_path,
+            text,
+            callback,
+            enabled_flag=True,
+            add_to_menu=True,
+            add_to_toolbar=True,
+            status_tip=None,
+            whats_this=None,
+            parent=None):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -180,13 +178,12 @@ class StripChart:
         return action
 
     def selectedlayer(self):
-            if self.dlg.qgLayer.currentLayer() == None:
-                return
-            self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer())
-            self.dlg.qgField.setField(None)
-            self.clearscene()
-            
-            
+        if self.dlg.qgLayer.currentLayer() is None:
+            return
+        self.dlg.qgField.setLayer(self.dlg.qgLayer.currentLayer())
+        self.dlg.qgField.setField(None)
+        self.clearscene()
+
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         self.pluginIsActive = False
@@ -196,11 +193,11 @@ class StripChart:
             text=self.tr(u'Stripchart'),
             callback=self.run,
             parent=self.iface.mainWindow())
-        self.view.setParent(self.dlg) 
+        self.view.setParent(self.dlg)
         self.dlg.vlMain.addWidget(self.view)
-        self.scene=QGraphicsScene()
+        self.scene = QGraphicsScene()
         self.view.setScene(self.scene)
-        self.scene.setSceneRect(0,0,300,2000)
+        self.scene.setSceneRect(0, 0, 300, 2000)
         self.dlg.qgLayer.setFilters(QgsMapLayerProxyModel.VectorLayer)
         self.dlg.qgLayer.setLayer(self.iface.activeLayer())
         self.dlg.qgField.setAllowEmptyFieldName(True)
@@ -209,7 +206,6 @@ class StripChart:
         self.dlg.qgLayer.layerChanged.connect(self.selectedlayer)
         self.iface.mapCanvas().selectionChanged.connect(self.markselected)
         self.dlg.qgField.currentIndexChanged['QString'].connect(self.stripchart)
-                
 
     #--------------------------------------------------------------------------
 
@@ -221,11 +217,10 @@ class StripChart:
 
         self.pluginIsActive = False
 
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
-        #print "** UNLOAD StripChart"
+        # print "** UNLOAD StripChart"
 
         for action in self.actions:
             self.iface.removePluginVectorMenu(
@@ -235,93 +230,91 @@ class StripChart:
         # remove the toolbar
         del self.toolbar
 
-    #--------------------------------------------------------------------------
-    
-    
+    # --------------------------------------------------------------------------
+
     def clearscene(self):
         self.scene.clear()
-        self.view.selectlines=[]
-        self.scene.values=[]
-        self.view.ids=[] # Keeps the ids .
-        
+        self.view.selectlines = []
+        self.scene.values = []
+        self.view.ids = []  # Keeps the ids .
 
     def stripchart(self):
         """
         Draws a stripchart based on a dataset
         """
-        self.view.layer=self.dlg.qgLayer.currentLayer()
-        if self.view.layer == None or self.dlg.isHidden():
+        self.view.layer = self.dlg.qgLayer.currentLayer()
+        if self.view.layer is None or self.dlg.isHidden():
             return
-        if self.view.layer.featureCount()==0:
+        if self.view.layer.featureCount() == 0:
             self.iface.messageBar().pushMessage(
                 "Stripchart", "No data in table, cannot draw stripchart",
-                level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
+                level=Qgis.Warning, duration=3)  # Info, Warning, Critical, Success
             return
         QgsMessageLog.logMessage("Stripchart starting", "Messages", 0)
         self.clearscene()
-        idfields=self.view.layer.dataProvider().pkAttributeIndexes() # These are the fields that build up the primary key
-        if len(idfields)==0:
+        idfields = self.view.layer.dataProvider().pkAttributeIndexes()  # These are the fields that build up the primary key
+        if len(idfields) == 0:
             try:
-                self.view.idfield=self.view.layer.fields()[0].name()
+                self.view.idfield = self.view.layer.fields()[0].name()
                 self.iface.messageBar().pushMessage(
-                    "Stripchart", "No primary key for {}, sorting on {}, - selection may not be possible".format(self.view.layer.name(),self.view.idfield),
-                    level=Qgis.Warning) # Info, Warning, Critical, Success
+                    "Stripchart", "No primary key for {}, sorting on {}, - selection may not be possible".format(self.view.layer.name(), self.view.idfield),
+                    level=Qgis.Warning)  # Info, Warning, Critical, Success
             except IndexError as e:
                 # Probably undefined layer, just return
                 # This happens some times when exiting QGIS
                 QgsMessageLog.logMessage("Could not draw stripchart - IndexError", "Messages", Qgis.Warning)
                 return
         else:
-            #idfield=idfields[0]
-            self.view.idfield=self.view.layer.fields()[idfields[0]].name()
+            # idfield = idfields[0]
+            self.view.idfield = self.view.layer.fields()[idfields[0]].name()
             self.iface.messageBar().pushMessage(
                 "Stripchart", "Sorting on  {}".format(self.view.idfield),
-                level=Qgis.Info, duration=3) # Info, Warning, Critical, Success
-        fieldname=self.dlg.qgField.currentText()
-        if fieldname=='' or fieldname is None:
+                level=Qgis.Info, duration=3)  # Info, Warning, Critical, Success
+        fieldname = self.dlg.qgField.currentText()
+        if fieldname == '' or fieldname is None:
             return
-        request = QgsFeatureRequest().addOrderBy(self.view.idfield).setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.view.idfield,fieldname], self.view.layer.fields() )
-        iter=self.view.layer.getFeatures(request)
+        request = QgsFeatureRequest().addOrderBy(self.view.idfield).setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.view.idfield, fieldname], self.view.layer.fields())
+        iter = self.view.layer.getFeatures(request)
         for feature in iter:
-            if isinstance(feature[fieldname],list):
-                 self.iface.messageBar().pushMessage(
+            if isinstance(feature[fieldname], list):
+                self.iface.messageBar().pushMessage(
                     "Stripchart", "Invalid field type : {}".format(fieldname),
-                    level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
-                 return
-            self.scene.values.append(feature[fieldname]) 
+                    level=Qgis.Warning, duration=3)  # Info, Warning, Critical, Success
+                return
+            self.scene.values.append(feature[fieldname])
             self.view.ids.append(feature[self.view.idfield])
             # QgsMessageLog.logMessage("Added id {}".format(feature[self.view.idfield]), "Messages", Qgis.Info)
-        self.scene.setSceneRect(0,0,self.view.width,len(self.scene.values))
-        airfact=0.02 
-        maxval=max(self.scene.values)
-        minval=min(self.scene.values)
-        print(maxval,minval)
-        if maxval == None:
+        self.scene.setSceneRect(0, 0, self.view.width, len(self.scene.values))
+        airfact = 0.02
+        maxval = max(self.scene.values)
+        minval = min(self.scene.values)
+        print(maxval, minval)
+        if maxval is None:
             # Field with only "None" values
             return
-        air=(maxval-minval)*airfact
-        if maxval>0:
-            maxval+=air
+        air = (maxval - minval) * airfact
+        if maxval > 0:
+            maxval += air
         else:
-            maxval-=air
-        if minval >0:
-            minval-=air
+            maxval -= air
+        if minval > 0:
+            minval -= air
         else:
-            minval+=air
-        if maxval-minval==0:
-            scale=self.view.width/maxval # Could just as well return since this will plot a straight line...
+            minval += air
+        if maxval - minval == 0:
+            scale = self.view.width / maxval  # Could just as well return since this will plot a straight line...
         else:
-            scale=self.view.width/(maxval-minval)
-        n=0
+            scale = self.view.width / (maxval - minval)
+        n = 0
         for v in self.scene.values:
-            v-=minval
-            self.scene.addLine(0,n,v*scale,n)
-            n+=1
-        self.markselected() # In case something is already selected when the layer is plotted
- 
+            v -= minval
+            self.scene.addLine(0, n, v * scale, n)
+            n += 1
+        self.markselected()  # In case something is already selected when the layer is plotted
+
     def run(self):
         """Run method that loads and starts the plugin"""
-        self.init=True
+        self.init = True
         if not self.pluginIsActive:
             self.pluginIsActive = True
 
@@ -331,106 +324,105 @@ class StripChart:
             # show the dockwidget
             self.iface.mainWindow().addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dlg)
             self.dlg.show()
-            
+
     def markselected(self):
         """Marks in the stripchart which elements that are selected"""
         try:
-            if self.view.layer==None:
+            if self.view.layer is None:
                 return
             QgsMessageLog.logMessage("Going to look into selection", "Messages", Qgis.Info)
-            sels=self.view.layer.selectedFeatures() # The selected features in the active (from this plugin's point of view) layer
-            n=len(sels)
+            sels = self.view.layer.selectedFeatures()  # The selected features in the active (from this plugin's point of view) layer
+            n = len(sels)
             QgsMessageLog.logMessage("Selected {}".format(n), "Messages", Qgis.Info)
-                
+
             self.view.clearselection()
             QgsMessageLog.logMessage("Selection cleared", "Messages", Qgis.Info)
-            
-            if n>0:
+
+            if n > 0:
                 self.view.markselection(sels)
         except:
             try:
                 self.iface.messageBar().pushMessage(
                     "Stripchart", "Error during selection from {}".format(self.view.layer.name()),
-                    level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
-            except RuntimeError:
+                    level=Qgis.Warning, duration=3)  # Info, Warning, Critical, Success
+            except RuntimeError as e:
                 print("Error in markselected:")
                 print(e)
             except Exception as e:
                 self.iface.messageBar().pushMessage(
                     "Stripchart", "Error during selection ",
-                    level=Qgis.Warning, duration=3) # Info, Warning, Critical, Success
+                    level=Qgis.Warning, duration=3)  # Info, Warning, Critical, Success
                 print(e)
                 print(self.view.layer.name())
-                
-                
+
+
 class MouseReadGraphicsView(QGraphicsView):
     def __init__(self, iface):
         self.iface = iface
         QGraphicsView.__init__(self)
-        self.selectlines=[]
-        self.ids=[]
-        self.width=250
-        self.idfield='id' # Needs to be userselectable or autoset
+        self.selectlines = []
+        self.ids = []
+        self.width = 250
+        self.idfield = 'id'  # Needs to be userselectable or autoset
         self.setMouseTracking(True)
-        
-    def selectmarker(self,y):
+
+    def selectmarker(self, y):
         """ Marks one item """
-        selectpen=QPen(Qt.GlobalColor.yellow)
-        markline=self.scene().addLine(0,y,250,y,selectpen)
+        selectpen = QPen(Qt.GlobalColor.yellow)
+        markline = self.scene().addLine(0, y, 250, y, selectpen)
         markline.setZValue(-1)
         self.selectlines.append(markline)
-    
+
     def clearselection(self):
         """ Clears the selection from the stripchart """
         for line in self.selectlines:
-             self.scene().removeItem(line)
-        
-    def markselection(self,sels):
+            self.scene().removeItem(line)
+
+    def markselection(self, sels):
         """ Goes through to mark selected items """
         QgsMessageLog.logMessage("Going to mark selected", "Messages", Qgis.Info)
-        
+
         for sel in sels:
             try:
-                idval=sel[self.idfield]
-                y=self.ids.index(idval)
+                idval = sel[self.idfield]
+                y = self.ids.index(idval)
                 self.selectmarker(y)
-            except Exception as e: # Ignore problems when
+            except Exception as e:  # Ignore problems when
                 QgsMessageLog.logMessage("Error when drawing: {}".format(str(e)), "Messages", Qgis.Warning)
                 pass
-        
-    #TODO - handle ctrl and/or shift click and drags correctly
+
+    # TODO - handle ctrl and/or shift click and drags correctly
     def mousePressEvent(self, event):
         if event.button() == 1:
-            coords=self.mapToScene(event.pos())    
-            self.ypress=coords.y() # Storing where the button was clicked
-            
+            coords = self.mapToScene(event.pos())
+            self.ypress = coords.y()  # Storing where the button was clicked
 
-    def mouseMoveEvent(self,event):
-        coords=self.mapToScene(event.pos())  
-        ycoord=int(coords.y())
+    def mouseMoveEvent(self, event):
+        coords = self.mapToScene(event.pos())
+        ycoord = int(coords.y())
         try:
             self.parent.dlg.label.setText("{}".format(self.scene().values[ycoord]))
         except IndexError:
-            pass # In case of a short data set, pointing to an area without data.
+            pass  # In case of a short data set, pointing to an area without data.
         except AttributeError:
-            pass # In case the scene is not initialized yet
-            
+            pass  # In case the scene is not initialized yet
+
     def mouseReleaseEvent(self, event):
-        
+
         if event.button() == 1:
-            coords=self.mapToScene(event.pos())  
-            yrelease=coords.y()
-            if yrelease==None:
-                yrelease=0
-            if self.ypress==None:
-                self.ypress=0
-            if self.layer== None:
+            coords = self.mapToScene(event.pos())
+            yrelease = coords.y()
+            if yrelease is None:
+                yrelease = 0
+            if self.ypress is None:
+                self.ypress = 0
+            if self.layer is None:
                 return
-            ymin=int(min(yrelease,self.ypress))
-            ymax=int(max(yrelease,self.ypress))
-            if ymin==ymax:
-                ymax+=1
-            QgsMessageLog.logMessage("Marking from {} to {}".format(ymin,ymax), "Messages", Qgis.Info)
-            selectedids=self.ids[ymin:ymax]
+            ymin = int(min(yrelease, self.ypress))
+            ymax = int(max(yrelease, self.ypress))
+            if ymin == ymax:
+                ymax += 1
+            QgsMessageLog.logMessage("Marking from {} to {}".format(ymin, ymax), "Messages", Qgis.Info)
+            selectedids = self.ids[ymin:ymax]
             self.layer.select(selectedids)
-            self.ypress=None
+            self.ypress = None
