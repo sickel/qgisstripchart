@@ -329,7 +329,7 @@ class StripChart:
             self.dlg.closingPlugin.connect(self.onClosePlugin)
 
             # show the dockwidget
-            self.iface.mainWindow().addDockWidget(Qt.RightDockWidgetArea, self.dlg)
+            self.iface.mainWindow().addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dlg)
             self.dlg.show()
             
     def markselected(self):
@@ -375,7 +375,7 @@ class MouseReadGraphicsView(QGraphicsView):
         
     def selectmarker(self,y):
         """ Marks one item """
-        selectpen=QPen(Qt.yellow)
+        selectpen=QPen(Qt.GlobalColor.yellow)
         markline=self.scene().addLine(0,y,250,y,selectpen)
         markline.setZValue(-1)
         self.selectlines.append(markline)
