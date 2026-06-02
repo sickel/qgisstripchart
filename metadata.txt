@@ -6,7 +6,8 @@
 name=Stripchartdrawer
 description=The plugin draws a stripchart for a selected value from a dataset.
 qgisMinimumVersion=3.0
-version=0.66
+qgisMaximumVersion=4.99
+version=0.7
 author=Morten Sickel
 email=morten@sickel.net
 
@@ -22,7 +23,8 @@ repository=https://github.com/sickel/qgisstripchart/
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=0.63 Fixed icons. Moved to vector/Spectral data menu
+changelog=0.7 Ready for QGIS4, some code cleaning
+  0.63 Fixed icons. Moved to vector/Spectral data menu
   0.62 Got rid of some unneeded error messages, fixed some other error handling
 
 
